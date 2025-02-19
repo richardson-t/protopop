@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61",
+	    "setuptools_scm",
+	    "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "protopop"
+description = "Tools to simulate protostellar populations"
+dependencies = ['astropy',
+	        'astroquery',
+	        'h5py',
+	        'initial_mass_function',
+	        'numpy',
+		'sedfitter',
+		'scikit-learn',
+		'scipy',
+		'tqdm']
+
+readme = "README.md"
+license = "LICENSE.rst"
+dynamic = ['optional-dependencies','authors','requires-python','version']
+
+[tool.setuptools.packages]
+find = {}
+
+[project.urls]
+Homepage = "https://github.com/richardson-t/protopop"
+Issues = "https://github.com/richardson-t/protopop/issues"
