@@ -6,7 +6,7 @@ from imf import make_cluster
 
 from .dust import dust_sphere
 from .interpolation import interp_templates
-from .time import make_offset #edit functions to use this instead once it's pip installed
+from .time import make_offset
 from .util import *
 
 from abc import ABCMeta
@@ -179,25 +179,6 @@ class Cluster(object,metaclass=ABCMeta):
         add_times = np.max(times) - times
         self.add_time(add_times)
 
-    #####get rid of this once you can successfully pip install
-    #Generate n random numbers from a uniform distribution over 0 to maxtime
-    def _make_random(self,n,max_val):
-        rng = np.random.default_rng()
-        return u.Quantity(rng.uniform(0,max_val.value,n),max_val.unit)
-
-    #Generate n random numbers from a normal distribution centered on 0 with a 1-sigma of interval
-    def _make_normal_random(self,n,sigma):
-        rng = np.random.default_rng()
-        return u.Quantity(rng.normal(0,sigma.value,n),sigma.unit)
-
-    #Wrapper for generating random ages
-    def _make_offset(self,n_times,sfh,timescale):        
-        if sfh == 'random':
-            return self._make_random(n_times,timescale)
-        else:
-            return self._make_normal_random(n_times,timescale)
-    #####
-    
     #Scale flux values from their current distance to a new distance
     def _scale_fluxes(self,d_new):
         factor = (self.distance**2 / d_new**2).value
@@ -261,11 +242,9 @@ class Cluster(object,metaclass=ABCMeta):
         if self.sfh is not None:
             if 'end' in self.sfh:
                 self.align_end()
-            if 'random' in self.sfh:
-                offset_times = self._make_offset(self.n_members,self.sfh,self.timescale)
+            if self.sfh not in ['start','end']:
+                offset_times = make_offset(self.n_members,self.sfh,self.timescale)
                 self.add_time(offset_times)
-            mintime = self._min_time()
-            self.add_time(-mintime*u.Myr)
         
         times = []
         for tbl in self.flux_history.values():
@@ -357,7 +336,7 @@ class Cluster(object,metaclass=ABCMeta):
             
         ev_hist = dict()
         flux_hist = dict()
-        for m in masses:
+        for m in tqdm(masses,desc='Reading tracks',ncols=0,leave=False):
             ev_hist.update({m:read_table_hdf5(in_file,path=f'ev/{m}')})
             flux_hist.update({m:read_table_hdf5(in_file,path=f'flux/{m}')})
         cluster._ev_history = ev_hist
@@ -396,7 +375,7 @@ class Cluster(object,metaclass=ABCMeta):
         write_table_hdf5(prop_table,out_file,path='properties',
                          compression=True,serialize_meta=True)
 
-        for key in self.ev_history.keys():
+        for key in tqdm(self.ev_history.keys(),desc='Writing tracks',ncols=0,leave=False):
             write_table_hdf5(self.ev_history[key],out_file,path=f'ev/{key}',
                              compression=True)
             write_table_hdf5(self.flux_history[key],out_file,path=f'flux/{key}',

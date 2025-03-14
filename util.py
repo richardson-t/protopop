@@ -98,7 +98,7 @@ def history_check(history):
         raise ValueError('Accretion history not recognized')
 
 def sfh_check(sfh):
-    approved_sfhs = ['start','end','random','randomstart','randomend']
+    approved_sfhs = ['start','end','constant','normalstart','normalend']
     if sfh in approved_sfhs:
         pass
     else:
