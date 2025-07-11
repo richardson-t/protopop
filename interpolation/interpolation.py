@@ -3,6 +3,8 @@ from astropy.table import Table
 from astropy import units as u
 from astropy.modeling.models import BlackBody
 
+#from ..util import interp_props
+
 # find rows from the beginning
 def find_row(selected_time, tbl):
     times = tbl['Time']
@@ -136,7 +138,8 @@ def _sametime(m1,m2,
     return ev1,ev2,fx1,fx2
 
 def standardize(m1,m2,
-                ev_tracks,flux_tracks,last_times,history,
+                ev_tracks,flux_tracks,
+                last_times,history,
                 inits,distance,wav,aps):
     samestep_hists = ['is','taper_is','taper_tc']
     sametime_hists = ['tc','ca','taper_ca','exp']
@@ -149,18 +152,21 @@ def standardize(m1,m2,
         ev1, ev2, fx1, fx2 = _sametime(m1,m2,
                                        ev_tracks,flux_tracks,last_times,
                                        inits,distance,wav,aps)
-    
+
     return ev1,ev2,fx1,fx2
 
-def interp_templates(mf,
-                     masses,ev_tracks,flux_tracks,last_temps,last_times,history,
-                     inits,distance,wav,aps):    
+def interp_tracks(mf,
+                  masses,ev_tracks,flux_tracks,
+                  last_temps,last_times,history,
+                  inits,distance,wav,aps,
+                  return_ev=False,return_flux=False):    
     # Retrieve the relevant tables (with modifications for interpolation)
     i = np.searchsorted(masses, mf)
     m1 = masses[i-1]
     m2 = masses[i]
     ev1, ev2, fx1, fx2 = standardize(m1,m2,
-                                     ev_tracks,flux_tracks,last_times,history,
+                                     ev_tracks,flux_tracks,
+                                     last_times,history,
                                      inits,distance,wav,aps)
 
     frac = (mf - m1) / (m2 - m1)
@@ -188,5 +194,10 @@ def interp_templates(mf,
     first_time = np.argmin(abs(interp_ev['Time'] - interp_fx['Time'][0]))
     last_time = np.argmin(abs(interp_ev['Time'] - interp_fx['Time'][-1])) + 1
     interp_ev = interp_ev[first_time:last_time]
-    
-    return interp_ev,interp_fx
+
+    if np.logical_and(return_ev,return_flux):
+        return interp_ev,interp_fx
+    elif return_ev:
+        return interp_ev
+    elif return_flux:
+        return interp_fx
