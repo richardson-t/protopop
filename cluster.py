@@ -6,7 +6,7 @@ from scipy.interpolate import RegularGridInterpolator
 from imf import make_cluster
 
 from .dust import dust_sphere
-from .interpolation import interp_templates
+from .interpolation import interp_tracks
 from .time import make_offset
 from .util import *
 
@@ -30,41 +30,43 @@ class Cluster(object,metaclass=ABCMeta):
                  distance=1*u.kpc,
                  T_res=10*u.K,
                  R_res=1*u.pc,
-                 mu=2.4*u.Da
+                 mu=2.4*u.Da,
+                 read_only=False
     ):
-        if mass is None:
-            raise ValueError('Total cluster mass must be provided')        
-        self._mass = mass
+        if not read_only:
+            if mass is None:
+                raise ValueError('Total cluster mass must be provided')        
+            self._mass = mass
 
-        history_check(history)
-        self._history = history
+            history_check(history)
+            self._history = history
 
-        imf_check(imf)
-        self._imf = imf
+            imf_check(imf)
+            self._imf = imf
 
-        if sfh is not None:
-            sfh_check(sfh)
-            self._sfh = sfh
-            if timescale is None:
-                self._timescale = 0.1 * u.Myr
+            if sfh is not None:
+                sfh_check(sfh)
+                self._sfh = sfh
+                if timescale is None:
+                    self._timescale = 0.1 * u.Myr
+                else:
+                    unit_check(timescale,'time')
             else:
-                unit_check(timescale,'time')
-        else:
-            self._sfh = 'start'
-            self._timescale = np.nan
+                self._sfh = 'start'
+                self._timescale = np.nan
 
-        self._sampling = sampling
-        self._stop = np.nan if self.sampling == 'optimal' else stop_criterion
-        self._efficiency = efficiency
+            self._sampling = sampling
+            self._stop = np.nan if self.sampling == 'optimal' else stop_criterion
+            self._efficiency = efficiency
         
-        unit_check(distance,'length')
-        self._distance = distance
-        unit_check(T_res,'temperature')
-        unit_check(R_res,'length')
-        unit_check(mu,'mass')
-        self._res_props = [T_res,R_res,mu]
+            unit_check(distance,'length')
+            self._distance = distance
+            unit_check(T_res,'temperature')
+            unit_check(R_res,'length')
+            unit_check(mu,'mass')
+            self._res_props = [T_res,R_res,mu]
 
-        self._construct()
+            self._construct()
 
     @property
     def mass(self):
@@ -183,8 +185,7 @@ class Cluster(object,metaclass=ABCMeta):
         self._wav = self._info[1][1][mass_key].wav
         self._apertures = self._info[1][1][mass_key].apertures
         self._be = dust_sphere(self.mass,self.efficiency,
-                               self.wav,self.apertures,
-                               distance,
+                               self.wav,self.apertures,self.distance,
                                T=self.res_props[0],
                                R_cl=self.res_props[1],
                                mu=self.res_props[2])
@@ -197,6 +198,7 @@ class Cluster(object,metaclass=ABCMeta):
                               mmax=120,
                               sampling=self.sampling,
                               stop_criterion=self.stop)
+        masses = masses[masses > 0.2]
         self._n_members = len(masses)
         self._member_masses = np.copy(masses[np.argsort(masses)])
         del masses
@@ -207,8 +209,8 @@ class Cluster(object,metaclass=ABCMeta):
         indices,fracs = interp_props(self.member_masses,self._info[0])
         end_times = []
         for i in range(len(indices)):
-            t1 = self._info[1][self._info[0][indices[i]-1]]['Time'][-1]
-            t2 = self._info[1][self._info[0][indices[i]]]['Time'][-1]
+            t1 = self._info[1][0][self._info[0][indices[i]-1]]['Time'][-1]
+            t2 = self._info[1][0][self._info[0][indices[i]]]['Time'][-1]
             t = (1. - fracs[i]) * t1 + fracs[i] * t2
             end_times.append(t)
         self._end_times = np.array(end_times) * u.Myr
@@ -232,12 +234,12 @@ class Cluster(object,metaclass=ABCMeta):
         
         ret = Table()
         for i,m in tqdm(enumerate(self.member_masses),leave=False):
-	    track_index = 2 if self.binaries[i] else 1
-            evol = interp_templates(m,
-                                    self._info[0],*self._info[track_index],*self._info[-2:],
-                                    self._be,self._track_distance,self.wav,self.apertures,
-                                    return_ev=True)
-            evol['Time'] += self.offsets[i]
+            track_index = 2 if self.binaries[i] else 1
+            evol = interp_tracks(m,
+                                 self._info[0],*self._info[track_index],*self._info[-2:],
+                                 self._be,self._track_distance,self.wav,self.apertures,
+                                 return_ev=True)
+            evol['Time'] += self.offsets[i].value
             time_index = np.argmin(abs(time - evol['Time']))
             row = evol[time_index]
             ret = vstack([ret,row])
@@ -270,12 +272,12 @@ class Cluster(object,metaclass=ABCMeta):
         fluxes = []
         inc_bins = np.linspace(0,90,10)
         for i,m in tqdm(enumerate(self.member_masses),leave=False):
-	    track_index = 2 if self.binaries[i] else 1
-            flux = interp_templates(m,
-                                    self._info[0],*self._info[track_index],*self._info[-2:],
-                                    self._be,self._track_distance,self.wav,self.apertures,
-                                    return_flux=True)
-            flux['Time'] += self.offsets[i]
+            track_index = 2 if self.binaries[i] else 1
+            flux = interp_tracks(m,
+                                 self._info[0],*self._info[track_index],*self._info[-2:],
+                                 self._be,self._track_distance,self.wav,self.apertures,
+                                 return_flux=True)
+            flux['Time'] += self.offsets[i].value
             
             inc = self.inclinations[i]
             inc_index = np.searchsorted(inc_bins,inc) - 1
@@ -296,7 +298,7 @@ class Cluster(object,metaclass=ABCMeta):
 
     @classmethod
     def read(cls,filename):
-        cluster = cls()
+        cluster = cls(read_only=True)
 
         print('Reading cluster properties...')
         in_file = h5py.File(filename,'r')
@@ -330,7 +332,7 @@ class Cluster(object,metaclass=ABCMeta):
         cluster._info = setup_templates(cluster.history,
                                         cluster.efficiency)
         mass_key = [*cluster._info[1][0].keys()][0]
-	cluster._track_distance = cluster._info[1][1][mass_key].distance
+        cluster._track_distance = cluster._info[1][1][mass_key].distance
         cluster._be = dust_sphere(cluster.mass,cluster.efficiency,
                                   cluster.wav,cluster.apertures,
                                   cluster._track_distance,

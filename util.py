@@ -53,7 +53,7 @@ def pick_binaries(syst_masses):
     rng = np.random.default_rng()
     probs = rng.random(len(syst_masses))
     fractions = np.interp(syst_masses,mults['Primary Mass'],mults['Multiplicity Fraction'])
-    return np.logical_or(probs < fractions,syst_masses < 0.4)
+    return np.logical_and(probs < fractions,syst_masses > 0.4)
 
 def interp_props(x,base_x):
     x = np.atleast_1d(x)
@@ -62,7 +62,7 @@ def interp_props(x,base_x):
     indices = np.searchsorted(base_x,x)
     fracs = []
     for i,val in enumerate(x):
-        x1 = base_x[indices[i-1]]
+        x1 = base_x[indices[i]-1]
         x2 = base_x[indices[i]]
         fracs.append((val - x1) / (x2 - x1))
     fracs = np.array(fracs)

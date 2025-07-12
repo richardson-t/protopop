@@ -31,6 +31,7 @@ def _samestep(m1,m2,
     dt2 = ev2['Time'][1] - ev2['Time'][0]
     
     fx1,fx2 = flux_tracks[m1].track.copy(),flux_tracks[m2].track.copy()
+    
     fx1_steps = [row['Time'] in fx1['Time'] for row in ev1]
     fx2_steps = [row['Time'] in fx2['Time'] for row in ev2]
     either_steps = np.logical_or(fx1_steps,fx2_steps)
@@ -45,7 +46,7 @@ def _samestep(m1,m2,
             row_to_add = [fx2['Time'][-1] - dt2,inits]
             fx2.add_row(row_to_add)
         fx2.reverse()
-    
+
     #if table 2 starts first, add rows to table 1
     elif np.argmax(fx1_steps) > first_step:
         nsteps = np.argmax(fx1_steps) - first_step
@@ -54,7 +55,7 @@ def _samestep(m1,m2,
             row_to_add = [fx1['Time'][-1] - dt1,inits]
             fx1.add_row(row_to_add)
         fx1.reverse()
-    
+
     #if table 1 ends last, add rows to table 2
     if np.argmax(fx2_steps[::-1]) > last_step:
         nsteps = np.argmax(fx2_steps[::-1]) - last_step
@@ -65,7 +66,7 @@ def _samestep(m1,m2,
         for n in range(nsteps):
             row_to_add = [fx2['Time'][-1] + dt2,sed]
             fx2.add_row(row_to_add)
-    
+
     #elif table 2 ends last, add rows to table 1
     elif np.argmax(fx1_steps[::-1]) > last_step:
         nsteps = np.argmax(fx1_steps[::-1]) - last_step
@@ -76,7 +77,7 @@ def _samestep(m1,m2,
         for n in range(nsteps):
             row_to_add = [fx1['Time'][-1] + dt1,sed]
             fx1.add_row(row_to_add)
-    
+            
     return ev1,ev2,fx1,fx2
     
 def _sametime(m1,m2,
@@ -164,11 +165,12 @@ def interp_tracks(mf,
     i = np.searchsorted(masses, mf)
     m1 = masses[i-1]
     m2 = masses[i]
+
     ev1, ev2, fx1, fx2 = standardize(m1,m2,
                                      ev_tracks,flux_tracks,
                                      last_times,history,
                                      inits,distance,wav,aps)
-
+    
     frac = (mf - m1) / (m2 - m1)
     interp_fx = Table()
     for key in fx1.keys():
@@ -187,7 +189,7 @@ def interp_tracks(mf,
                   distance,wav,aps)
     row_to_add = [tf,sed]
     interp_fx.add_row(row_to_add)
-
+    
     interp_ev = Table()
     for key in ev1.keys():
         interp_ev.add_column((1. - frac) * ev1[key] + frac * ev2[key],name=key)
