@@ -1,5 +1,5 @@
 import numpy as np
-from astropy.table import Table
+from astropy.table import Table,vstack
 from astropy import units as u
 from astropy.modeling.models import BlackBody
 
@@ -42,19 +42,29 @@ def _samestep(m1,m2,
     if np.argmax(fx2_steps) > first_step:
         nsteps = np.argmax(fx2_steps) - first_step
         fx2.reverse()
+
+        row_list = []
         for n in range(nsteps):
             row_to_add = [fx2['Time'][-1] - dt2,inits]
-            fx2.add_row(row_to_add)
+            row_list.append(row_to_add)
+        add_table = Table(row_list,names=[*fx2.keys()])
+        fx2 = vstack([fx2,add_table])
         fx2.reverse()
+        del row_list,add_table
 
     #if table 2 starts first, add rows to table 1
     elif np.argmax(fx1_steps) > first_step:
         nsteps = np.argmax(fx1_steps) - first_step
         fx1.reverse()
+
+        row_list = []
         for n in range(nsteps):
             row_to_add = [fx1['Time'][-1] - dt1,inits]
-            fx1.add_row(row_to_add)
+            row_list.append(row_to_add)
+        add_table = Table(row_list,names=[*fx1.keys()])
+        fx1 = vstack([fx1,add_table])
         fx1.reverse()
+        del row_list,add_table
 
     #if table 1 ends last, add rows to table 2
     if np.argmax(fx2_steps[::-1]) > last_step:
@@ -63,10 +73,15 @@ def _samestep(m1,m2,
         last_rad = ev2['Stellar_Radius'][find_row(t2,ev2)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
+
+        row_list = []
         for n in range(nsteps):
             row_to_add = [fx2['Time'][-1] + dt2,sed]
-            fx2.add_row(row_to_add)
-
+            row_list.append(row_to_add)
+        add_table = Table(row_list,names=[*fx2.keys()])
+        fx2 = vstack([fx2,add_table])
+        del row_list,add_table
+        
     #elif table 2 ends last, add rows to table 1
     elif np.argmax(fx1_steps[::-1]) > last_step:
         nsteps = np.argmax(fx1_steps[::-1]) - last_step
@@ -74,10 +89,15 @@ def _samestep(m1,m2,
         last_rad = ev1['Stellar_Radius'][find_row(t1,ev1)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
+
+        row_list = []
         for n in range(nsteps):
             row_to_add = [fx1['Time'][-1] + dt1,sed]
-            fx1.add_row(row_to_add)
-            
+            row_list.append(row_to_add)
+        add_table = Table(row_list,names[*fx1.keys()])
+        fx1 = vstack([fx1,add_table])
+        del row_list,add_table
+        
     return ev1,ev2,fx1,fx2
     
 def _sametime(m1,m2,
@@ -94,10 +114,15 @@ def _sametime(m1,m2,
     if np.argmin(overlap_12) < np.argmax(overlap_12):
         new_times = fx1['Time'][:np.argmax(overlap_12)][::-1]
         fx2.reverse()
+
+        row_list = []
         for time in range(len(new_times)):
             row_to_add = [new_times[time],inits]
-            fx2.add_row(row_to_add)
+            row_list.append(row_to_add)
+        add_table = Table(row_list,names=[*fx2.keys()])
+        fx2 = vstack([fx2,add_table])
         fx2.reverse()
+        del row_list,add_table
 
         #update overlap
         overlap_12 = np.array([val in fx2['Time'] for val in fx1['Time']])
@@ -106,10 +131,15 @@ def _sametime(m1,m2,
     elif np.argmin(overlap_21) < np.argmax(overlap_21):
         new_times = fx2['Time'][:np.argmax(overlap_21)][::-1]
         fx1.reverse()
+
+        row_list = []
         for time in range(len(new_times)):
             row_to_add = [new_times[time],inits]
-            fx1.add_row(row_to_add)
+            row_list.append(row_to_add)
+        add_table = Table(row_list,names[*fx1.keys()])
+        fx1 = vstack([fx1,add_table])
         fx1.reverse()
+        del row_list,add_table
 
         #update overlap
         overlap_21 = np.array([val in fx1['Time'] for val in fx2['Time']])
@@ -121,9 +151,14 @@ def _sametime(m1,m2,
         last_rad = ev2['Stellar_Radius'][find_row(t2,ev2)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
+
+        row_list = []
         for time in new_times:
             row_to_add = [time,sed]
-            fx2.add_row(row_to_add)
+            row_list.append(row_to_add)
+        add_table = Table(row_list,names=[*fx2.keys()])
+        fx2 = vstack([fx2,add_table])
+        del row_list,add_table
 
     #else if table 2 ends last, add rows to table 1
     elif np.argmin(overlap_21) > np.argmax(overlap_21):
@@ -132,9 +167,14 @@ def _sametime(m1,m2,
         last_rad = ev1['Stellar_Radius'][find_row(t1,ev1)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
+
+        row_list = []
         for time in new_times:
             row_to_add = [time,sed]
-            fx1.add_row(row_to_add)
+            row_list.append(row_to_add)
+        add_table = Table(row_list,names=[*fx1.keys()])
+        fx1 = vstack([fx1,add_table])
+        del row_list,add_table
 
     return ev1,ev2,fx1,fx2
 
