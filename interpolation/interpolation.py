@@ -42,12 +42,15 @@ def _samestep(m1,m2,
     if np.argmax(fx2_steps) > first_step:
         nsteps = np.argmax(fx2_steps) - first_step
         fx2.reverse()
+        add_t = fx2['Time'][-1]
 
-        row_list = []
+        row_list = dict()
         for n in range(nsteps):
             row_to_add = [fx2['Time'][-1] - dt2,inits]
-            row_list.append(row_to_add)
-        add_table = Table(row_list,names=[*fx2.keys()])
+            row_list.update({row_to_add[0]:row_to_add[1]})
+        add_table = Table([[key for key in row_list.keys()],
+                           [val for val in row_list.values()]],
+                          names=[*fx2.keys()])
         fx2 = vstack([fx2,add_table])
         fx2.reverse()
         del row_list,add_table
@@ -56,12 +59,16 @@ def _samestep(m1,m2,
     elif np.argmax(fx1_steps) > first_step:
         nsteps = np.argmax(fx1_steps) - first_step
         fx1.reverse()
+        add_t = fx1['Time'][-1]
 
-        row_list = []
+        row_list = dict()
         for n in range(nsteps):
-            row_to_add = [fx1['Time'][-1] - dt1,inits]
-            row_list.append(row_to_add)
-        add_table = Table(row_list,names=[*fx1.keys()])
+            add_t -= dt1
+            row_to_add = [add_t,inits]
+            row_list.update({row_to_add[0]:row_to_add[1]})
+        add_table = Table([[key for key in row_list.keys()],
+                           [val for val in row_list.values()]],
+                          names=[*fx1.keys()])
         fx1 = vstack([fx1,add_table])
         fx1.reverse()
         del row_list,add_table
@@ -73,12 +80,16 @@ def _samestep(m1,m2,
         last_rad = ev2['Stellar_Radius'][find_row(t2,ev2)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
-
-        row_list = []
+        add_t = fx2['Time'][1]
+        
+        row_list = dict()
         for n in range(nsteps):
-            row_to_add = [fx2['Time'][-1] + dt2,sed]
-            row_list.append(row_to_add)
-        add_table = Table(row_list,names=[*fx2.keys()])
+            add_t += dt2
+            row_to_add = [add_t,sed]
+            row_list.update({row_to_add[0]:row_to_add[1]})
+        add_table = Table([[key for key in row_list.keys()],
+                           [val for val in row_list.values()]],
+                          names=[*fx2.keys()])
         fx2 = vstack([fx2,add_table])
         del row_list,add_table
         
@@ -89,12 +100,16 @@ def _samestep(m1,m2,
         last_rad = ev1['Stellar_Radius'][find_row(t1,ev1)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
-
-        row_list = []
+        add_t = fx1['Time'][-1]
+        
+        row_list = dict()
         for n in range(nsteps):
-            row_to_add = [fx1['Time'][-1] + dt1,sed]
-            row_list.append(row_to_add)
-        add_table = Table(row_list,names[*fx1.keys()])
+            add_t += dt1
+            row_to_add = [add_t,sed]
+            row_list.update({row_to_add[0]:row_to_add[1]})
+        add_table = Table([[key for key in row_list.keys()],
+                           [val for val in row_list.values()]],
+                          names=[*fx1.keys()])
         fx1 = vstack([fx1,add_table])
         del row_list,add_table
         
@@ -115,11 +130,13 @@ def _sametime(m1,m2,
         new_times = fx1['Time'][:np.argmax(overlap_12)][::-1]
         fx2.reverse()
 
-        row_list = []
+        row_list = dict()
         for time in range(len(new_times)):
             row_to_add = [new_times[time],inits]
-            row_list.append(row_to_add)
-        add_table = Table(row_list,names=[*fx2.keys()])
+            row_list.update({row_to_add[0]:row_to_add[1]})
+        add_table = Table([[key for key in row_list.keys()],
+                           [val for val in row_list.values()]],
+                          names=[*fx2.keys()])
         fx2 = vstack([fx2,add_table])
         fx2.reverse()
         del row_list,add_table
@@ -132,11 +149,13 @@ def _sametime(m1,m2,
         new_times = fx2['Time'][:np.argmax(overlap_21)][::-1]
         fx1.reverse()
 
-        row_list = []
+        row_list = dict()
         for time in range(len(new_times)):
             row_to_add = [new_times[time],inits]
-            row_list.append(row_to_add)
-        add_table = Table(row_list,names[*fx1.keys()])
+            row_list.update({row_to_add[0]:row_to_add[1]})
+        add_table = Table([[key for key in row_list.keys()],
+                           [val for val in row_list.values()]],
+                          names=[*fx1.keys()])
         fx1 = vstack([fx1,add_table])
         fx1.reverse()
         del row_list,add_table
@@ -152,11 +171,13 @@ def _sametime(m1,m2,
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
 
-        row_list = []
+        row_list = dict()
         for time in new_times:
             row_to_add = [time,sed]
-            row_list.append(row_to_add)
-        add_table = Table(row_list,names=[*fx2.keys()])
+            row_list.update({row_to_add[0]:row_to_add[1]})
+        add_table = Table([[key for key in row_list.keys()],
+                           [val for val in row_list.values()]],
+                          names=[*fx2.keys()])
         fx2 = vstack([fx2,add_table])
         del row_list,add_table
 
@@ -168,11 +189,13 @@ def _sametime(m1,m2,
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
 
-        row_list = []
+        row_list = dict()
         for time in new_times:
             row_to_add = [time,sed]
-            row_list.append(row_to_add)
-        add_table = Table(row_list,names=[*fx1.keys()])
+            row_list.update({row_to_add[0]:row_to_add[1]})
+        add_table = Table([[key for key in row_list.keys()],
+                           [val for val in row_list.values()]],
+                          names=[*fx1.keys()])
         fx1 = vstack([fx1,add_table])
         del row_list,add_table
 

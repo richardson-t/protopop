@@ -198,6 +198,7 @@ class Cluster(object,metaclass=ABCMeta):
                               mmax=120,
                               sampling=self.sampling,
                               stop_criterion=self.stop)
+        self._mass = sum(masses)
         masses = masses[masses > 0.2]
         self._n_members = len(masses)
         self._member_masses = np.copy(masses[np.argsort(masses)])
@@ -233,7 +234,8 @@ class Cluster(object,metaclass=ABCMeta):
         time = time.to(u.Myr).value
         
         ret = Table()
-        for i,m in tqdm(enumerate(self.member_masses),leave=False):
+        for i,m in tqdm(enumerate(self.member_masses),
+                        total=self.n_members,leave=False):
             track_index = 2 if self.binaries[i] else 1
             evol = interp_tracks(m,
                                  self._info[0],*self._info[track_index],*self._info[-2:],
@@ -251,7 +253,7 @@ class Cluster(object,metaclass=ABCMeta):
         Description
         """
         unit_check(time,'time')
-        time = time.to(u.Myr)
+        time = time.to(u.Myr).value
         
         if np.logical_or(wav is None and freq is None,
                          wav is not None and freq is not None):
@@ -267,21 +269,28 @@ class Cluster(object,metaclass=ABCMeta):
 
         unit_check(ap,'length')
         ap = ap.to(u.AU)
+        ap = np.atleast_1d(ap.value) * u.AU
         scalarAp = True if len(ap) == 1 else False
             
         fluxes = []
         inc_bins = np.linspace(0,90,10)
-        for i,m in tqdm(enumerate(self.member_masses),leave=False):
+        for i,m in tqdm(enumerate(self.member_masses),
+                        total=self.n_members,leave=False):
             track_index = 2 if self.binaries[i] else 1
             flux = interp_tracks(m,
                                  self._info[0],*self._info[track_index],*self._info[-2:],
                                  self._be,self._track_distance,self.wav,self.apertures,
                                  return_flux=True)
             flux['Time'] += self.offsets[i].value
+            row = flux[np.argmin(abs(time - flux['Time']))]
             
             inc = self.inclinations[i]
             inc_index = np.searchsorted(inc_bins,inc) - 1
             row_sed = row['SED'][inc_index]
+            try:
+                unit_check(row_sed,u.mJy)
+            except(TypeError):
+                row_sed = row_sed * u.mJy
             row_sed *= (self._track_distance / self.distance)**2
             grid = RegularGridInterpolator((self.apertures.value,self.wav.value),row_sed)
             aa, ww = np.meshgrid(ap.value,wav.value,indexing='ij')
@@ -295,6 +304,70 @@ class Cluster(object,metaclass=ABCMeta):
             fluxes.append(ret)
 
         return np.array(fluxes)
+
+    def sample_all(self,time,wav=None,freq=None,ap=1000*u.AU):
+        """
+        Description
+        """
+        unit_check(time,'time')
+        time = time.to(u.Myr).value
+
+        if np.logical_or(wav is None and freq is None,
+                         wav is not None and freq is not None):
+            raise RuntimeError('Provide either wavelength or frequency (in astropy units)')
+        if wav is not None:
+            unit_check(wav,'length')
+            wav = wav.to(u.um)
+        elif freq is not None:
+            unit_check(freq,'frequency')
+            wav = freq.to(u.um,equivalencies=u.spectral())
+        wav = np.atleast_1d(wav.value) * u.um
+        scalarWav = True if len(wav) == 1 else False
+
+        unit_check(ap,'length')
+        ap = ap.to(u.AU)
+        ap = np.atleast_1d(ap.value) * u.AU
+        scalarAp = True if len(ap) == 1 else False
+        
+        ev = Table()
+        fluxes = []
+        inc_bins = np.linspace(0,90,10)
+        for i,m in tqdm(enumerate(self.member_masses),
+                        total=self.n_members,leave=False):
+            track_index = 2 if self.binaries[i] else 1
+            m_evol, m_flux = interp_tracks(m,
+                                           self._info[0],*self._info[track_index],*self._info[-2:],
+                                           self._be,self._track_distance,self.wav,self.apertures,
+                                           return_ev=True,return_flux=True)
+            
+            m_evol['Time'] += self.offsets[i].value
+            time_index = np.argmin(abs(time - m_evol['Time']))
+            row = m_evol[time_index]
+            ev = vstack([ev,row])
+
+            m_flux['Time'] += self.offsets[i].value
+            row = m_flux[np.argmin(abs(time - m_flux['Time']))]
+
+            inc = self.inclinations[i]
+            inc_index = np.searchsorted(inc_bins,inc) - 1
+            row_sed = row['SED'][inc_index]
+            try:
+                unit_check(row_sed,u.mJy)
+            except(TypeError):
+                row_sed = row_sed * u.mJy
+            row_sed *= (self._track_distance / self.distance)**2
+            grid = RegularGridInterpolator((self.apertures.value,self.wav.value),row_sed)
+            aa, ww = np.meshgrid(ap.value,wav.value,indexing='ij')
+            val = grid((aa,ww))
+            if scalarAp and scalarWav:
+                val = val[0,0]
+            elif scalarAp:
+                val = val[0]
+            elif scalarWav:
+                val = val[:,0]
+            fluxes.append(val)
+
+        return ev,np.array(fluxes)
 
     @classmethod
     def read(cls,filename):
