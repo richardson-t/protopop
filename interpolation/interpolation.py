@@ -3,6 +3,8 @@ from astropy.table import Table,vstack
 from astropy import units as u
 from astropy.modeling.models import BlackBody
 
+import line_profiler
+
 #from ..util import interp_props
 
 # find rows from the beginning
@@ -20,6 +22,7 @@ def make_bb(temp,rad,
         ret.append([s_nu for n in range(len(aps))])
     return np.array(ret)
 
+@line_profiler.profile
 def _samestep(m1,m2,
               ev_tracks,flux_tracks,last_times,
               inits,distance,wav,aps,
@@ -41,8 +44,8 @@ def _samestep(m1,m2,
     #if table 1 starts first, add rows to table 2
     if np.argmax(fx2_steps) > first_step:
         nsteps = np.argmax(fx2_steps) - first_step
-        fx2.reverse()
-        add_t = fx2['Time'][-1]
+        #fx2.reverse()
+        add_t = fx2['Time'][0]
 
         row_list = dict()
         for n in range(nsteps):
@@ -52,14 +55,14 @@ def _samestep(m1,m2,
                            [val for val in row_list.values()]],
                           names=[*fx2.keys()])
         fx2 = vstack([fx2,add_table])
-        fx2.reverse()
+        #fx2.reverse()
         del row_list,add_table
 
     #if table 2 starts first, add rows to table 1
     elif np.argmax(fx1_steps) > first_step:
         nsteps = np.argmax(fx1_steps) - first_step
-        fx1.reverse()
-        add_t = fx1['Time'][-1]
+        #fx1.reverse()
+        add_t = fx1['Time'][0]
 
         row_list = dict()
         for n in range(nsteps):
@@ -70,7 +73,7 @@ def _samestep(m1,m2,
                            [val for val in row_list.values()]],
                           names=[*fx1.keys()])
         fx1 = vstack([fx1,add_table])
-        fx1.reverse()
+        #fx1.reverse()
         del row_list,add_table
 
     #if table 1 ends last, add rows to table 2
@@ -80,7 +83,7 @@ def _samestep(m1,m2,
         last_rad = ev2['Stellar_Radius'][find_row(t2,ev2)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
-        add_t = fx2['Time'][1]
+        add_t = fx2['Time'][np.argmax(fx2['Time'])]
         
         row_list = dict()
         for n in range(nsteps):
@@ -100,7 +103,7 @@ def _samestep(m1,m2,
         last_rad = ev1['Stellar_Radius'][find_row(t1,ev1)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
-        add_t = fx1['Time'][-1]
+        add_t = fx1['Time'][np.argmax(fx1['Time'])]
         
         row_list = dict()
         for n in range(nsteps):
@@ -115,6 +118,7 @@ def _samestep(m1,m2,
         
     return ev1,ev2,fx1,fx2
     
+@line_profiler.profile
 def _sametime(m1,m2,
               ev_tracks,flux_tracks,last_times,
               inits,distance,wav,aps):
@@ -201,6 +205,7 @@ def _sametime(m1,m2,
 
     return ev1,ev2,fx1,fx2
 
+@line_profiler.profile
 def standardize(m1,m2,
                 ev_tracks,flux_tracks,
                 last_times,history,
@@ -219,6 +224,7 @@ def standardize(m1,m2,
 
     return ev1,ev2,fx1,fx2
 
+@line_profiler.profile
 def interp_tracks(mf,
                   masses,ev_tracks,flux_tracks,
                   last_temps,last_times,history,
@@ -235,29 +241,28 @@ def interp_tracks(mf,
                                      inits,distance,wav,aps)
     
     frac = (mf - m1) / (m2 - m1)
-    interp_fx = Table()
-    for key in fx1.keys():
-        interp_fx.add_column((1. - frac) * fx1[key] + frac * fx2[key],name=key)
+    interp_fx = {key: (1. - frac) * fx1[key] + frac * fx2[key] for key in fx1.keys()}
+    interp_fx = Table(interp_fx)
+    
     tf = (1. - frac) * last_times[m1] + frac * last_times[m2]
     rf = ((1. - frac) * ev1['Stellar_Radius'][find_row(tf,ev1)] + frac * ev2['Stellar_Radius'][find_row(tf,ev2)]) * u.R_sun
     tempf = (1. - frac) * last_temps[m1] + frac * last_temps[m2]
     interp_fx = interp_fx[interp_fx['Time'] < tf]
     
     row_to_add = [2 * interp_fx['Time'][0] - interp_fx['Time'][1],inits]
-    interp_fx.reverse()
+    #interp_fx.reverse()
     interp_fx.add_row(row_to_add)
-    interp_fx.reverse()
+    #interp_fx.reverse()
 
     sed = make_bb(tempf * u.K,rf,
                   distance,wav,aps)
     row_to_add = [tf,sed]
     interp_fx.add_row(row_to_add)
     
-    interp_ev = Table()
-    for key in ev1.keys():
-        interp_ev.add_column((1. - frac) * ev1[key] + frac * ev2[key],name=key)
-    first_time = np.argmin(abs(interp_ev['Time'] - interp_fx['Time'][0]))
-    last_time = np.argmin(abs(interp_ev['Time'] - interp_fx['Time'][-1])) + 1
+    interp_ev = {key: (1. - frac) * ev1[key] + frac * ev2[key] for key in ev1.keys()}
+    interp_ev = Table(interp_ev)
+    first_time = np.argmin(abs(interp_ev['Time'] - interp_fx['Time'][np.argmin(interp_fx['Time'])]))
+    last_time = np.argmin(abs(interp_ev['Time'] - interp_fx['Time'][np.argmax(interp_fx['Time'])])) + 1
     interp_ev = interp_ev[first_time:last_time]
 
     if np.logical_and(return_ev,return_flux):
