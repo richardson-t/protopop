@@ -158,7 +158,7 @@ class Cluster(object,metaclass=ABCMeta):
         Description
         """
         unit_check(time,'time')
-        time = time.to(u.Myr).value
+        time = time.to(u.Myr)
         
         time = np.atleast_1d(time)
         if not np.logical_or(len(time) == 1,len(time) == self.n_members):

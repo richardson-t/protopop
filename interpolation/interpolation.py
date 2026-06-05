@@ -83,7 +83,7 @@ def _samestep(m1,m2,
         last_rad = ev2['Stellar_Radius'][find_row(t2,ev2)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
-        add_t = fx2['Time'][np.argmax(fx2['Time'])]
+        add_t = np.max(fx2['Time'])
         
         row_list = dict()
         for n in range(nsteps):
@@ -103,7 +103,7 @@ def _samestep(m1,m2,
         last_rad = ev1['Stellar_Radius'][find_row(t1,ev1)] * u.R_sun
         sed = make_bb(last_temp,last_rad,
                       distance,wav,aps)
-        add_t = fx1['Time'][np.argmax(fx1['Time'])]
+        add_t = np.max(fx1['Time'])
         
         row_list = dict()
         for n in range(nsteps):
@@ -261,9 +261,9 @@ def interp_tracks(mf,
     
     interp_ev = {key: (1. - frac) * ev1[key] + frac * ev2[key] for key in ev1.keys()}
     interp_ev = Table(interp_ev)
-    first_time = np.argmin(abs(interp_ev['Time'] - interp_fx['Time'][np.argmin(interp_fx['Time'])]))
-    last_time = np.argmin(abs(interp_ev['Time'] - interp_fx['Time'][np.argmax(interp_fx['Time'])])) + 1
-    interp_ev = interp_ev[first_time:last_time]
+    first_time = np.argmin(abs(interp_ev['Time'] - np.min(interp_fx['Time'])))
+    last_time = np.argmin(abs(interp_ev['Time'] - np.min(interp_fx['Time'])))
+    interp_ev = interp_ev[first_time:last_time+1]
 
     if np.logical_and(return_ev,return_flux):
         return interp_ev,interp_fx
