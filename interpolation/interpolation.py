@@ -6,7 +6,7 @@ from astropy.modeling.models import BlackBody
 import line_profiler
 
 from ..dust import dust_sphere
-#from ..util import interp_props
+from ..util import interp_props
 
 # find rows from the beginning
 def find_row(selected_time, tbl):
@@ -221,21 +221,23 @@ def _sametime(m1,m2,
     return ev1,ev2,fx1,fx2
 
 @line_profiler.profile
-def standardize(m1,m2,
-                ev_tracks,flux_tracks,
-                last_times,history,
-                inits,distance,wav,aps):
+def standardize(history,m1,m2,
+                ev_tracks,flux_tracks,last_times,
+                distance,wav,aps,
+                M_cl,efficiency,inits):
     samestep_hists = ['is','taper_is','taper_tc']
     sametime_hists = ['tc','ca','taper_ca','exp']
 
     if history in samestep_hists:
         ev1, ev2, fx1, fx2 = _samestep(m1,m2,
                                        ev_tracks,flux_tracks,last_times,
-                                       inits,distance,wav,aps)
+                                       distance,wav,aps,
+                                       M_cl,efficiency,inits)
     elif history in sametime_hists:
         ev1, ev2, fx1, fx2 = _sametime(m1,m2,
                                        ev_tracks,flux_tracks,last_times,
-                                       inits,distance,wav,aps)
+                                       distance,wav,aps,
+                                       M_cl,efficiency,inits)
 
     return ev1,ev2,fx1,fx2
 
@@ -251,10 +253,10 @@ def interp_tracks(mf,
     m1 = masses[i-1]
     m2 = masses[i]
 
-    ev1, ev2, fx1, fx2 = standardize(m1,m2,
-                                     ev_tracks,flux_tracks,
-                                     last_times,history,
-                                     inits,distance,wav,aps)
+    ev1, ev2, fx1, fx2 = standardize(history,m1,m2,
+                                     ev_tracks,flux_tracks,last_times,
+                                     distance,wav,aps,
+                                     M_cl,efficiency,inits)
     
     frac = (mf - m1) / (m2 - m1)
     interp_fx = {key: (1. - frac) * fx1[key] + frac * fx2[key] for key in fx1.keys()}
