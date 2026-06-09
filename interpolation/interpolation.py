@@ -5,6 +5,7 @@ from astropy.modeling.models import BlackBody
 
 import line_profiler
 
+from ..dust import dust_sphere
 #from ..util import interp_props
 
 # find rows from the beginning
@@ -25,7 +26,8 @@ def make_bb(temp,rad,
 @line_profiler.profile
 def _samestep(m1,m2,
               ev_tracks,flux_tracks,last_times,
-              inits,distance,wav,aps,
+              distance,wav,aps,
+              M_cl,efficiency,inits,
               nsteps=1000):
     ev1,ev2 = ev_tracks[m1].copy(),ev_tracks[m2].copy()
     ev1,ev2 = ev1[:nsteps],ev2[:nsteps] #not sure why this is necessary, but...
@@ -43,13 +45,16 @@ def _samestep(m1,m2,
 
     #if table 1 starts first, add rows to table 2
     if np.argmax(fx2_steps) > first_step:
+        dust_sph = dust_sphere(m2,M_cl,efficiency,wav,aps,
+                               T=inits[0],R_cl=inits[1],mu=inits[2])
+
         nsteps = np.argmax(fx2_steps) - first_step
         #fx2.reverse()
         add_t = fx2['Time'][0]
 
         row_list = dict()
         for n in range(nsteps):
-            row_to_add = [fx2['Time'][-1] - dt2,inits]
+            row_to_add = [fx2['Time'][-1] - dt2,dust_sph]
             row_list.update({row_to_add[0]:row_to_add[1]})
         add_table = Table([[key for key in row_list.keys()],
                            [val for val in row_list.values()]],
@@ -60,6 +65,9 @@ def _samestep(m1,m2,
 
     #if table 2 starts first, add rows to table 1
     elif np.argmax(fx1_steps) > first_step:
+        dust_sph = dust_sphere(m1,M_cl,efficiency,wav,aps,
+                               T=inits[0],R_cl=inits[1],mu=inits[2])
+
         nsteps = np.argmax(fx1_steps) - first_step
         #fx1.reverse()
         add_t = fx1['Time'][0]
@@ -67,7 +75,7 @@ def _samestep(m1,m2,
         row_list = dict()
         for n in range(nsteps):
             add_t -= dt1
-            row_to_add = [add_t,inits]
+            row_to_add = [add_t,dust_sph]
             row_list.update({row_to_add[0]:row_to_add[1]})
         add_table = Table([[key for key in row_list.keys()],
                            [val for val in row_list.values()]],
@@ -121,7 +129,8 @@ def _samestep(m1,m2,
 @line_profiler.profile
 def _sametime(m1,m2,
               ev_tracks,flux_tracks,last_times,
-              inits,distance,wav,aps):
+              distance,wav,aps,
+              M_cl,inits):
     ev1,ev2 = ev_tracks[m1].copy(),ev_tracks[m2].copy()
     fx1,fx2 = flux_tracks[m1].track.copy(),flux_tracks[m2].track.copy()
     t1,t2 = last_times[m1],last_times[m2]
@@ -131,12 +140,15 @@ def _sametime(m1,m2,
 
     #if table 1 starts first, add rows to table 2
     if np.argmin(overlap_12) < np.argmax(overlap_12):
+        dust_sph = dust_sphere(m2,M_cl,efficiency,wav,aps,
+                               T=inits[0],R_cl=inits[1],mu=inits[2])
+
         new_times = fx1['Time'][:np.argmax(overlap_12)][::-1]
         fx2.reverse()
 
         row_list = dict()
         for time in range(len(new_times)):
-            row_to_add = [new_times[time],inits]
+            row_to_add = [new_times[time],dust_sph]
             row_list.update({row_to_add[0]:row_to_add[1]})
         add_table = Table([[key for key in row_list.keys()],
                            [val for val in row_list.values()]],
@@ -150,12 +162,15 @@ def _sametime(m1,m2,
 
     #else if table 2 starts first, add rows to table 1
     elif np.argmin(overlap_21) < np.argmax(overlap_21):
+        dust_sph = dust_sphere(m1,M_cl,efficiency,wav,aps,
+                               T=inits[0],R_cl=inits[1],mu=inits[2])
+
         new_times = fx2['Time'][:np.argmax(overlap_21)][::-1]
         fx1.reverse()
 
         row_list = dict()
         for time in range(len(new_times)):
-            row_to_add = [new_times[time],inits]
+            row_to_add = [new_times[time],dust_sph]
             row_list.update({row_to_add[0]:row_to_add[1]})
         add_table = Table([[key for key in row_list.keys()],
                            [val for val in row_list.values()]],
@@ -228,7 +243,8 @@ def standardize(m1,m2,
 def interp_tracks(mf,
                   masses,ev_tracks,flux_tracks,
                   last_temps,last_times,history,
-                  inits,distance,wav,aps,
+                  distance,wav,aps,
+                  M_cl,efficiency,inits,
                   return_ev=False,return_flux=False):    
     # Retrieve the relevant tables (with modifications for interpolation)
     i = np.searchsorted(masses, mf)
@@ -248,8 +264,11 @@ def interp_tracks(mf,
     rf = ((1. - frac) * ev1['Stellar_Radius'][find_row(tf,ev1)] + frac * ev2['Stellar_Radius'][find_row(tf,ev2)]) * u.R_sun
     tempf = (1. - frac) * last_temps[m1] + frac * last_temps[m2]
     interp_fx = interp_fx[interp_fx['Time'] < tf]
-    
-    row_to_add = [2 * interp_fx['Time'][0] - interp_fx['Time'][1],inits]
+
+    dust_sph = dust_sphere(mf,M_cl,efficiency,wav,aps,
+                           T=inits[0],R_cl=inits[1],mu=inits[2])
+
+    row_to_add = [2 * interp_fx['Time'][0] - interp_fx['Time'][1],dust_sph]
     #interp_fx.reverse()
     interp_fx.add_row(row_to_add)
     #interp_fx.reverse()

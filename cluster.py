@@ -5,7 +5,6 @@ from astropy.io.misc.hdf5 import read_table_hdf5,write_table_hdf5
 from scipy.interpolate import RegularGridInterpolator
 from imf import make_cluster
 
-from .dust import dust_sphere
 from .interpolation import interp_tracks
 from .time import make_offset
 from .util import *
@@ -184,11 +183,6 @@ class Cluster(object,metaclass=ABCMeta):
         self._track_distance = self._info[1][1][mass_key].distance
         self._wav = self._info[1][1][mass_key].wav
         self._apertures = self._info[1][1][mass_key].apertures
-        self._be = dust_sphere(self.mass,self.efficiency,
-                               self.wav,self.apertures,self.distance,
-                               T=self.res_props[0],
-                               R_cl=self.res_props[1],
-                               mu=self.res_props[2])
         del mass_key
 
         print('Sampling members...')
@@ -239,7 +233,8 @@ class Cluster(object,metaclass=ABCMeta):
             track_index = 2 if self.binaries[i] else 1
             evol = interp_tracks(m,
                                  self._info[0],*self._info[track_index],*self._info[-2:],
-                                 self._be,self._track_distance,self.wav,self.apertures,
+                                 self._track_distance,self.wav,self.apertures,
+                                 self.mass,self.efficiency,self.res_props,
                                  return_ev=True)
             evol['Time'] += self.offsets[i].value
             time_index = np.argmin(abs(time - evol['Time']))
@@ -279,7 +274,8 @@ class Cluster(object,metaclass=ABCMeta):
             track_index = 2 if self.binaries[i] else 1
             flux = interp_tracks(m,
                                  self._info[0],*self._info[track_index],*self._info[-2:],
-                                 self._be,self._track_distance,self.wav,self.apertures,
+                                 self._track_distance,self.wav,self.apertures,
+                                 self.mass,self.efficiency,self.res_props,
                                  return_flux=True)
             flux['Time'] += self.offsets[i].value
             row = flux[np.argmin(abs(time - flux['Time']))]
@@ -337,7 +333,8 @@ class Cluster(object,metaclass=ABCMeta):
             track_index = 2 if self.binaries[i] else 1
             m_evol, m_flux = interp_tracks(m,
                                            self._info[0],*self._info[track_index],*self._info[-2:],
-                                           self._be,self._track_distance,self.wav,self.apertures,
+                                           self._track_distance,self.wav,self.apertures,
+                                           self.mass,self.efficiency,self.res_props,
                                            return_ev=True,return_flux=True)
             
             m_evol['Time'] += self.offsets[i].value
