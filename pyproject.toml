@@ -12,14 +12,10 @@ dependencies = ['astropy',
 	        'h5py',
 	        'initial_mass_function',
 	        'numpy',
-		'sedfitter',
-		'scikit-learn',
 		'scipy',
 		'tqdm']
 
-readme = "README.md"
-license = "LICENSE.rst"
-dynamic = ['optional-dependencies','authors','requires-python','version']
+dynamic = ['optional-dependencies','authors','license','requires-python','readme','version']
 
 [tool.setuptools.packages]
 find = {}
