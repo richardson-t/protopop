@@ -6,16 +6,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "protopop"
+version = '0.0.0'
 description = "Tools to simulate protostellar populations"
 dependencies = ['astropy',
 	        'astroquery',
-	        'h5py',
-	        'initial_mass_function',
-	        'numpy',
+		'h5py',
+		'initial_mass_function',
+		'numpy',
 		'scipy',
-		'tqdm']
+		'tqdm',
+		'uv']
 
-dynamic = ['optional-dependencies','authors','license','requires-python','readme','version']
+dynamic = ['optional-dependencies','authors','license','requires-python','readme']
 
 [tool.setuptools.packages]
 find = {}
