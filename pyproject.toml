@@ -19,6 +19,9 @@ dependencies = ['astropy',
 
 dynamic = ['optional-dependencies','authors','license','requires-python','readme']
 
+[project.gui-scripts]
+get-protopop-data = "protopop.util.get_data:retriever"
+
 [tool.setuptools.packages]
 find = {}
 

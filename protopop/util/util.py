@@ -4,15 +4,15 @@ from astropy.table import Table
 from astroquery.svo_fps import SvoFps
 import h5py
 
-from .yso import YSOModel
+from ..yso import YSOModel
 
+from os import path
 from glob import glob
-import os
+
+datapath = path.dirname(__file__) + '/..'
 
 def setup_templates(history,efficiency):
     history_check(history)
-
-    datapath = os.path.dirname(__file__)
 
     ev_files = glob(f'{datapath}/data/protostar_tracks/{history}/*.txt')
     masses = np.array([float(f.split('=')[-1].split('.')[0] + '.' + f.split('=')[-1].split('.')[1]) for f in ev_files])
@@ -46,9 +46,7 @@ def pick_inclinations(vals):
     inclinations = rng.random(len(vals)) * 90
     return inclinations
 
-def pick_binaries(syst_masses):
-    datapath = os.path.dirname(__file__)
-    
+def pick_binaries(syst_masses):    
     mults = Table.read(f'{datapath}/data/multiplicity.fits')
     rng = np.random.default_rng()
     probs = rng.random(len(syst_masses))
