@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "protopop"
-version = '0.1.0'
+version = '0.1.0.dev'
 description = "Tools to simulate protostellar populations"
 dependencies = ['astropy',
 	        'astroquery',
@@ -20,7 +20,8 @@ dependencies = ['astropy',
 dynamic = ['optional-dependencies','authors','license','requires-python','readme']
 
 [project.gui-scripts]
-get-protopop-data = "protopop.util.get_data:retriever"
+get-track-data = "protopop.util.get_data:retrieve_tracks"
+get-cluster-data = "protopop.util.get_data:retrieve_clusters"
 
 [tool.setuptools.packages]
 find = {}
