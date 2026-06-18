@@ -11,6 +11,7 @@ from glob import glob
 
 datapath = path.dirname(__file__) + '/..'
 
+#Create dicts used in cluster sampling operations
 def setup_templates(history,efficiency):
     history_check(history)
 
@@ -42,17 +43,31 @@ def setup_templates(history,efficiency):
     return masses,single_info,binary_info,last_times,history
 
 def pick_inclinations(vals):
+    """
+    Draw :math:`n` inclinations between 0-90:math:`^\circ`, where
+    :math:`n` is the length of list/array-like ``vals``
+    """
     rng = np.random.default_rng()
     inclinations = rng.random(len(vals)) * 90
     return inclinations
 
-def pick_binaries(syst_masses):    
-    mults = Table.read(f'{datapath}/data/multiplicity.fits')
+#somewhat redundant with imf, but this is limited to binaries
+def pick_binaries(syst_masses):
+    """
+    For an array of star system masses, determine probability of
+    being a binary based on the multiplicity fractions of
+    `Offner et al. (2023) <https://doi.org/10.48550/arXiv.2203.10066>`_. 
+    Returns an array of booleans of the same length as the 
+    input array; ``True`` entries are binaries.
+    """
+    mults = Table.read(f'{datapath}/track_data/multiplicity.fits')
     rng = np.random.default_rng()
     probs = rng.random(len(syst_masses))
     fractions = np.interp(syst_masses,mults['Primary Mass'],mults['Multiplicity Fraction'])
     return np.logical_and(probs < fractions,syst_masses > 0.4)
 
+#return the location/fractional position between entries of a value
+#in an array (not in use/deprecated)?
 def interp_props(x,base_x):
     x = np.atleast_1d(x)
     returnScalar = True if len(x) == 1 else False
@@ -69,7 +84,38 @@ def interp_props(x,base_x):
     else:
         return indices,fracs
 
-def filter_flux(wav,sed,instrument,camera,returnZero=True):
+def filter_flux(sed,wav,instrument,camera,returnZero=True):
+    """
+    Convolve an SED with an instrumental response profile. Profiles
+    are pulled from the Spanish Virtual Observatory's
+    `Filter Profile Service <https://svo2.cab.inta-csic.es/theory/fps/>`_
+    (SVO FPS) via `astroquery <https://astroquery.readthedocs.io/en/latest/>`_.
+
+    Parameters
+    ----------
+    sed: array
+        The SED to be convolved
+    wav: array (:math:`\mu`m or equivalent)
+        Wavelengths where the SED to be convolved is defined
+    instrument: str
+        The instrument with the filter, formatted as in the SVO FPS
+        (e.g. `JWST`)
+    camera: str
+        The actual filter to be convolved, formatted as in the SVO FPS
+        (e.g. `MIRI.F2550W`)
+    
+    Other Parameters
+    ----------------
+    returnZero: bool
+        If ``True``, returns the Vega zero point (in Jy) for the filter
+
+    Returns
+    -------
+    flux: mJy
+        Convolved flux
+    zeropoint: Jy, optional
+        Zero point of the filter
+    """
     filter_info = SvoFps.get_transmission_data(f'{instrument}/{camera}')
     filter_wav = (filter_info['Wavelength']).to(u.um)
     filter_response = filter_info['Transmission']
@@ -86,6 +132,7 @@ def filter_flux(wav,sed,instrument,camera,returnZero=True):
     else:
         return flux
 
+#Round a number to some number of significant figures
 def sig_round(number,sigfigs=3):
     if number == 0:
         return 0
@@ -93,9 +140,12 @@ def sig_round(number,sigfigs=3):
         mag = np.floor(np.log10(number)).astype(int)
         return np.round(number,sigfigs - mag)
 
-def get_mass(table,row,ap,key):
+#Retrieve a particular value from an array entry in an astropy table 
+#review this; probably belongs in a track-making code instead of here
+def get_mass(table,row,ap,key='Sphere Masses'):
     return np.nanmax(table[key][row,0,:ap+1])
 
+#check that an entered IMF model is supported
 def imf_check(imf):
     approved_imfs = ['kroupa','chabrier','salpeter']
     if imf in approved_imfs:
@@ -103,6 +153,7 @@ def imf_check(imf):
     else:
         raise ValueError('IMF not recognized')
 
+#check that an entered accretion history is supported
 def history_check(history):
     approved_histories = ['is','tc','ca','exp',
                           'taper_is','taper_tc','taper_ca']
@@ -111,6 +162,7 @@ def history_check(history):
     else:
         raise ValueError('Accretion history not recognized')
 
+#check that an entered SFH is supported
 def sfh_check(sfh):
     approved_sfhs = ['start','end','constant','normalstart','normalend']
     if sfh in approved_sfhs:
@@ -118,6 +170,7 @@ def sfh_check(sfh):
     else:
         raise ValueError('Star formation history not recognized')
 
+#check that a value is the expected type of astropy unit
 def unit_check(val,expected_unit):
     try:
         assert u.get_physical_type(val) == expected_unit

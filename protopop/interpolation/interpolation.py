@@ -8,12 +8,13 @@ from ..dust import dust_sphere
 #for testing; delete on release
 import line_profiler
 
-# find rows from the beginning
+# find the point in a table closest to a particular time
 def find_row(selected_time, tbl):
     times = tbl['Time']
     selected_row = np.argmin(np.abs(times - selected_time))    
     return selected_row
 
+#make a blackbody
 def make_bb(temp,rad,
             distance,wav,aps):
     bb = BlackBody(temp)
@@ -23,6 +24,7 @@ def make_bb(temp,rad,
         ret.append([s_nu for n in range(len(aps))])
     return np.array(ret)
 
+#standardize tables of the same length
 @line_profiler.profile
 def _samestep(m1,m2,
               ev_tracks,flux_tracks,last_times,
@@ -125,7 +127,8 @@ def _samestep(m1,m2,
         del row_list,add_table
         
     return ev1,ev2,fx1,fx2
-    
+
+#standardize tables with the same timesteps
 @line_profiler.profile
 def _sametime(m1,m2,
               ev_tracks,flux_tracks,last_times,
@@ -220,6 +223,7 @@ def _sametime(m1,m2,
 
     return ev1,ev2,fx1,fx2
 
+#wrapper for table standardization
 @line_profiler.profile
 def standardize(history,m1,m2,
                 ev_tracks,flux_tracks,last_times,
@@ -241,6 +245,8 @@ def standardize(history,m1,m2,
 
     return ev1,ev2,fx1,fx2
 
+#construct evolutionary/flux track for a protostar
+#by interpolating between template tracks
 @line_profiler.profile
 def interp_tracks(mf,
                   masses,ev_tracks,flux_tracks,
