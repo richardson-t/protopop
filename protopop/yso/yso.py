@@ -8,6 +8,27 @@ from abc import ABCMeta
 from .helpers import parse_unit_safe,table_to_hdu
 
 class YSOModel(object,metaclass=ABCMeta):
+    """
+    A container for information about the flux evolution
+    of a YSO model.
+
+    Attributes
+    ----------
+    distance: kpc
+        Assumed distance to the YSO
+    wav: um (or equivalent)
+        Wavelengths at which the YSO's SED is defined
+    nu: Hz
+        Frequencies at which the YSO's SED is defined
+    apertures: AU (or equivalent)
+        Apertures in which the YSO's SED is defined
+    track: astropy table
+        The evolutionary track for the YSO's flux.
+        Contains an SED at each timestep
+    efficiency: float
+        The assumed mass accretion efficiency underlying
+        the evolutionary track
+    """
 
     def __init__(self,
                  distance=None,
