@@ -20,8 +20,9 @@ dependencies = ['astropy',
 dynamic = ['optional-dependencies','authors','license','requires-python','readme']
 
 [project.gui-scripts]
-get-track-data = "protopop.util.get_data:retrieve_tracks"
-get-cluster-data = "protopop.util.get_data:retrieve_clusters"
+get-protopop-data = "protopop.util.get_data:retrieve_all_data"
+get-protopop-tracks = "protopop.util.get_data:retrieve_tracks"
+get-protopop-clusters = "protopop.util.get_data:retrieve_clusters"
 
 [tool.setuptools.packages]
 find = {}

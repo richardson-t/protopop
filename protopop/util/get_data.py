@@ -36,3 +36,7 @@ def retrieve_clusters():
     run(f'uvx zenodo_get {record_id} -g {fn}', shell=True)
     unpack_archive(f'{fn}')
     run(f'rm {fn}', shell=True)
+
+def retrieve_all_data():
+    retrieve_clusters()
+    retrieve_tracks()
