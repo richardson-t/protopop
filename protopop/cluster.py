@@ -3,7 +3,7 @@ from astropy import units as u
 from astropy.table import Table,QTable,vstack
 from astropy.io.misc.hdf5 import read_table_hdf5,write_table_hdf5
 from scipy.interpolate import RegularGridInterpolator
-from imf import make_cluster
+from imf.sampling import sample_mass
 
 from .interpolation import interp_tracks
 from .time import make_offset
@@ -15,7 +15,53 @@ from tqdm import tqdm
 
 class Cluster(object,metaclass=ABCMeta):
     """
-    Description
+    A model protocluster. For details on the input options 
+    supported by this version of protopop, see the 
+    "Configuration" page of the documentation. 
+
+    Parameters
+    ----------
+    mass: float
+        Total mass in stars of the final stellar population,
+        in Msun
+    history: str
+        Accretion history followed by the model YSOs making
+        up the protocluster
+    imf: str, MassFunction
+        Mass function from which the final stellar population
+        is drawn
+    sampling: str
+        Sampling method used to draw masses from the IMF
+    stop_criterion: str
+        Which criterion to use to stop sampling (if sampling
+        is done randomly)
+    sfh: str
+        History of star formation followed by the cluster members
+    timescale: :math:`{\\rm Myr}` or equivalent
+        Characteristic timescale for the star formation history
+    efficiency: float
+        Mass accretion efficiency for star formation, as a percentage
+        (i.e. 33 -> 33% of mass transferred from natal material to
+        star)
+    distance: :math:`{\\rm kpc}` or equivalent
+        Distance to the cluster
+    T_res: :math:`{\\rm K}` or equivalent
+        Average temperature of the material in the
+        cluster's parent mass reservoir prior to
+        any formation (default = 10 K)
+    R_res: :math:`{\\rm pc}` or equivalent
+        Size of the parent mass reservoir; assumed
+        to be a sphere (default = 1 pc)
+    mu: :math:`{\\rm Da}` or equivalent
+        Mean molecular weight of the material in the
+        parent mass reservoir (default = 2.4 Da)
+ 
+    Other Parameters                       
+    ----------------
+    read_only: bool
+        If ``True``, do not assign anything to
+        cluster attributes on instantiation. Used
+        for reading existing protocluster models.
     """
     def __init__(self,
                  mass=None,
@@ -31,7 +77,7 @@ class Cluster(object,metaclass=ABCMeta):
                  R_res=1*u.pc,
                  mu=2.4*u.Da,
                  read_only=False
-    ):
+    ):  
         if not read_only:
             if mass is None:
                 raise ValueError('Total cluster mass must be provided')        
@@ -110,51 +156,95 @@ class Cluster(object,metaclass=ABCMeta):
     
     @property
     def wav(self):
+        """
+        Wavelength(s) at which the model YSO SEDs are defined
+        (in :math:`{\\rm \\mu m}`)
+        """
         return self._wav
 
     @property
     def nu(self):
+        """
+        Frequency(/ies) at which the model YSO SEDs are defined 
+        (in :math:`{\\rm Hz}`)
+        """
         return self._wav.to(u.Hz,equivalencies=u.spectral())
 
     @property
     def apertures(self):
+        """
+        Apertures in which the model YSO SEDs are defined
+        (in :math:`{\\rm AU}`)
+        """
         return self._apertures
 
     @property
     def n_members(self):
+        """
+        Number of cluster members
+        """
         return self._n_members
 
     @property
     def member_masses(self):
+        """
+        Final masses of cluster members
+        """
         return self._member_masses
 
     @property
     def inclinations(self):
+        """
+        Viewing angles of cluster members
+        """
         return self._inclinations
 
     @property
     def binaries(self):
+        """
+        Whether or not cluster members are binary systems
+        """
         return self._binaries
 
     @property
     def end_times(self):
+        """
+        When each member stops accreting (in :math:`{\\rm Myr}`)
+        """
         return self._end_times
 
     @property
     def max_time(self):
+        """
+        When the last cluster member stops accreting
+        (in :math:`{\\rm Myr}`)
+        """
         return self._max_time
 
     @property
     def offsets(self):
+        """
+        When each cluster member starts accreting
+        (in :math:`{\\rm Myr}`)
+        """
         return self._offsets
 
     @property
     def res_props(self):
+        """
+        Initial properties (temperature, radius, molecular weight)
+        of the material in the cluster's parent mass reservoir
+        """
         return self._res_props
 
     def add_time(self,time):
         """
-        Description
+        Add (or subtract) time from the timelines of
+        protocluster members. Accepts a single value or
+        an array of values with length equal to the number of
+        cluster members (must have astropy time units). Single
+        values will be added to all timelines; values in arrays
+        will be added to their corresponding member.
         """
         unit_check(time,'time')
         time = time.to(u.Myr)
@@ -186,12 +276,12 @@ class Cluster(object,metaclass=ABCMeta):
         del mass_key
 
         print('Sampling members...')
-        masses = make_cluster(self.mass,
-                              massfunc=self.imf,
-                              mmin=0.03,
-                              mmax=120,
-                              sampling=self.sampling,
-                              stop_criterion=self.stop)
+        masses = sample_mass(self.mass,
+                             massfunc=self.imf,
+                             mmin=0.03,
+                             mmax=120,
+                             sampling=self.sampling,
+                             stop_criterion=self.stop)
         self._mass = sum(masses)
         masses = masses[masses > 0.2]
         self._n_members = len(masses)
@@ -222,7 +312,14 @@ class Cluster(object,metaclass=ABCMeta):
 
     def sample_ev(self,time):
         """
-        Description
+        Sample the evolutionary history of protocluster
+        members at a particular time (must have astropy
+        time units). Returns a table where each row is
+        output from the protostellar evolutionary track
+        underlying a member; values are calculated through
+        interpolation of tracks created with a modified
+        `Klassen+ (2012) <https://doi.org/10.1111/j.1365-2966.2012.20523.x>`_ 
+        code (see `Richardson+ 2025 <https://doi.org/10.3847/1538-4357/ade99d>`_).
         """
         unit_check(time,'time')
         time = time.to(u.Myr).value
@@ -245,7 +342,25 @@ class Cluster(object,metaclass=ABCMeta):
     #add support for different viewing angles?
     def sample_flux(self,time,wav=None,freq=None,ap=1000*u.AU):
         """
-        Description
+        Sample the flux evolution of cluster members. Returns
+        an array of flux values (in mJy) corresponding to the
+        flux predicted for each member at the requested time.
+        Flux evolution is calculated following the procedure
+        laid out in `Richardson+ (2025) <https://doi.org/10.3847/1538-4357/ade99d>`_.
+
+        Parameters
+        ----------
+        time: :math:`{\\rm Myr}` or equivalent
+            Time at which to sample the cluster
+        wav: :math:`{\\rm \\mu m}` or equivalent
+            Wavelength(s) at which to sample the cluster.
+            Degenerate with ``freq`` (default = ``None``)
+        freq: :math:`{\\rm Hz}` or equivalent
+            Frequency(/ies) at which to sample the cluster.
+            Degenerate with ``wav`` (default = ``None``)
+        ap: :math:`{\\rm AU}` or equivalent
+            Aperture(s) at which to sample the cluster
+            (default = 1000 AU)
         """
         unit_check(time,'time')
         time = time.to(u.Myr).value
@@ -303,7 +418,13 @@ class Cluster(object,metaclass=ABCMeta):
 
     def sample_all(self,time,wav=None,freq=None,ap=1000*u.AU):
         """
-        Description
+        Sample both the evolutionary tracks and flux tracks
+        of cluster members.
+
+        Returns
+        -------
+        ev: astropy table
+        fluxes: array
         """
         unit_check(time,'time')
         time = time.to(u.Myr).value

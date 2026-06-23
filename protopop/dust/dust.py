@@ -100,18 +100,18 @@ def dust_sphere(m_star,M_cl,efficiency,
         Mass accretion efficiency (i.e. how much mass from
         the dust sphere ends up in the eventual star), in
         percentage (i.e. 33 for an efficiency of 1/3)
-    wav: array (:math:`\mu`m or equivalent)
+    wav: :math:`{\\rm \\mu m}` or equivalent
         Wavelength(s) at which to predict flux
-    aps: array (AU or equivalent)
+    aps: :math:`{\\rm AU}` or equivalent
         Apertures in which to predict flux
-    T: K (or equivalent)
+    T: :math:`{\\rm K}` or equivalent
         Average temperature of gas/dust in the cluster
         (default = 10 K)
-    R_cl: pc (or equivalent)
+    R_cl: :math:`{\\rm pc}` or equivalent
         Radius of the cluster (default = 1 pc)
-    mu: Da (or equivalent)
+    mu: :math:`{\\rm Da}` or equivalent
         Mean molecular mass of material in the cluster
-        (default = 2.4)
+        (default = 2.4 Da)
     """
     M_cl = u.Quantity(M_cl,u.M_sun)
     bb = BlackBody(T)

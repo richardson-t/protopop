@@ -6,17 +6,35 @@
 protopop
 ========
 
-Documentation is under construction.
+Straightforward sampling of the evolutionary histories/expected fluxes of protocluster members. Documentation is under construction.
 
+Installation
+------------
 
-API
----
+To install ``protopop``:::
+
+  pip install protopop
+
+To retrieve the data ``protopop`` uses to sample, run ``get-protopop-data`` from the command line within the environment where ``protopop`` is installed.
+
+.. note::
+
+   Data consists of protostellar evolutionary tracks/corresponding flux tracks and a pre-made set of sample clusters; you can run ``get-protopop-tracks`` or ``get-protopop-clusters`` to retrieve them individually.
+
+Usage
+-----
+
+To sample with ``protopop``...
+
+Details
+-------
 
 .. toctree::
    :maxdepth: 2
 
    api/api.rst
-
+   configuration.rst
+   
 Indices and tables
 ------------------
 

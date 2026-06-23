@@ -44,7 +44,7 @@ def setup_templates(history,efficiency):
 
 def pick_inclinations(vals):
     """
-    Draw :math:`n` inclinations between 0-90:math:`^\circ`, where
+    Draw :math:`n` inclinations between :math:`0-90^{\\circ}`, where
     :math:`n` is the length of list/array-like ``vals``
     """
     rng = np.random.default_rng()
@@ -95,8 +95,8 @@ def filter_flux(sed,wav,instrument,camera,returnZero=True):
     ----------
     sed: array
         The SED to be convolved
-    wav: array (:math:`\mu`m or equivalent)
-        Wavelengths where the SED to be convolved is defined
+    wav: :math:`{\\rm \\mu m}` or equivalent
+        Wavelength(s) where the SED to be convolved is defined
     instrument: str
         The instrument with the filter, formatted as in the SVO FPS
         (e.g. `JWST`)
@@ -111,9 +111,9 @@ def filter_flux(sed,wav,instrument,camera,returnZero=True):
 
     Returns
     -------
-    flux: mJy
+    flux: :math:`{\\rm mJy}`
         Convolved flux
-    zeropoint: Jy, optional
+    zeropoint: :math:`{\\rm Jy}`, optional
         Zero point of the filter
     """
     filter_info = SvoFps.get_transmission_data(f'{instrument}/{camera}')

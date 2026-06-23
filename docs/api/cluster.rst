@@ -2,7 +2,6 @@
 
 Cluster
 =======
-
-.. currentmodule:: protopop
 		   
-.. autoclass:: cluster.Cluster
+.. autoclass:: protopop.cluster::Cluster
+   :members:

@@ -1,3 +1,3 @@
 from __future__ import print_function, division
 
-from .dust_sphere import dust_sphere
+from .dust import dust_sphere

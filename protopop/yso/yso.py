@@ -14,13 +14,13 @@ class YSOModel(object,metaclass=ABCMeta):
 
     Attributes
     ----------
-    distance: kpc
+    distance: :math:`{\\rm kpc}`
         Assumed distance to the YSO
-    wav: um (or equivalent)
+    wav: :math:`{\\rm \\mu m}` or equivalent
         Wavelengths at which the YSO's SED is defined
-    nu: Hz
+    nu: :math:`{\\rm Hz}`
         Frequencies at which the YSO's SED is defined
-    apertures: AU (or equivalent)
+    apertures: :math:`{\\rm AU}` or equivalent
         Apertures in which the YSO's SED is defined
     track: astropy table
         The evolutionary track for the YSO's flux.

@@ -26,7 +26,7 @@ def make_offset(sfh,n_times,timescale):
         distribution) and "normalstart"/"normalend" (normal distribution)
     n_times: int
         Number of times to sample
-    timescale: Myr (or equivalent)
+    timescale: :math:`{\\rm Myr}` or equivalent
         Characteristic timescale for the distribution. "constant" = the 
         total timespan over which to sample; "normal" = the 1-sigma width
         of the distribution

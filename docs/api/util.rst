@@ -5,5 +5,5 @@ util
 
 General utility functions for cluster sampling/etc.
 
-.. automodule:: protopop.util
+.. automodule:: protopop.util.util
    :members:
