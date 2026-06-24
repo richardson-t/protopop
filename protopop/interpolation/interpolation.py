@@ -5,9 +5,6 @@ from astropy.modeling.models import BlackBody
 
 from ..dust import dust_sphere
 
-#for testing; delete on release
-import line_profiler
-
 # find the point in a table closest to a particular time
 def find_row(selected_time, tbl):
     times = tbl['Time']
@@ -25,7 +22,6 @@ def make_bb(temp,rad,
     return np.array(ret)
 
 #standardize tables of the same length
-@line_profiler.profile
 def _samestep(m1,m2,
               ev_tracks,flux_tracks,last_times,
               distance,wav,aps,
@@ -129,7 +125,6 @@ def _samestep(m1,m2,
     return ev1,ev2,fx1,fx2
 
 #standardize tables with the same timesteps
-@line_profiler.profile
 def _sametime(m1,m2,
               ev_tracks,flux_tracks,last_times,
               distance,wav,aps,
@@ -224,7 +219,6 @@ def _sametime(m1,m2,
     return ev1,ev2,fx1,fx2
 
 #wrapper for table standardization
-@line_profiler.profile
 def standardize(history,m1,m2,
                 ev_tracks,flux_tracks,last_times,
                 distance,wav,aps,
@@ -247,7 +241,6 @@ def standardize(history,m1,m2,
 
 #construct evolutionary/flux track for a protostar
 #by interpolating between template tracks
-@line_profiler.profile
 def interp_tracks(mf,
                   masses,ev_tracks,flux_tracks,
                   last_temps,last_times,history,
