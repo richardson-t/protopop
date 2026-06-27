@@ -5,9 +5,10 @@ from astropy.table import Table
 
 from abc import ABCMeta
 
-from .helpers import parse_unit_safe,table_to_hdu
+from .helpers import parse_unit_safe, table_to_hdu
 
-class YSOModel(object,metaclass=ABCMeta):
+
+class YSOModel(object, metaclass=ABCMeta):
     """
     A container for information about the flux evolution
     of a YSO model.
@@ -48,7 +49,7 @@ class YSOModel(object,metaclass=ABCMeta):
         return self._distance
 
     @distance.setter
-    def distance(self,value):
+    def distance(self, value):
         if value is None:
             self._distance = None
         else:
@@ -59,7 +60,7 @@ class YSOModel(object,metaclass=ABCMeta):
         return self._wav
 
     @wav.setter
-    def	wav(self,value):
+    def wav(self, value):
         if value is None:
             self._wav = None
         else:
@@ -68,16 +69,16 @@ class YSOModel(object,metaclass=ABCMeta):
     @property
     def nu(self):
         if self._wav is not None:
-            return self._wav.to(u.Hz,equivalencies=u.spectral())
+            return self._wav.to(u.Hz, equivalencies=u.spectral())
         else:
             return None
-            
+
     @property
     def apertures(self):
         return self._apertures
 
     @apertures.setter
-    def apertures(self,value):
+    def apertures(self, value):
         if value is None:
             self._apertures = None
         else:
@@ -88,20 +89,20 @@ class YSOModel(object,metaclass=ABCMeta):
         return self._track
 
     @track.setter
-    def	track(self,value):
+    def track(self, value):
         if value is None:
             self._track = None
         else:
             self._track = value
-            
+
     @classmethod
-    def read(cls,filename,order='wav',memmap=True):
+    def read(cls, filename, order='wav', memmap=True):
         model = cls()
 
-        hdulist = fits.open(filename,memmap=memmap)
+        hdulist = fits.open(filename, memmap=memmap)
 
         model.distance = hdulist[0].header['DISTANCE'] * u.kpc
-        
+
         hdu_wav = hdulist['WAVELENGTHS']
         model.wav = u.Quantity(hdu_wav.data['WAVELENGTH'],
                                parse_unit_safe(hdu_wav.columns[0].unit))
@@ -120,7 +121,7 @@ class YSOModel(object,metaclass=ABCMeta):
                                  parse_unit_safe(hdu_vals.header['UNIT'])),
                       name='SED')
         model.track = tb
-        
+
         return model
 
     def _check_all_set(self):
@@ -133,7 +134,7 @@ class YSOModel(object,metaclass=ABCMeta):
         if self.track is None:
             raise ValueError("Table 'track' is not set")
 
-    def write(self,filename,overwrite=False):
+    def write(self, filename, overwrite=False):
         self._check_all_set()
 
         hdulist = fits.HDUList()
@@ -167,5 +168,5 @@ class YSOModel(object,metaclass=ABCMeta):
         hdu4.header['UNIT'] = self.track['SED'].unit.to_string()
         hdu4.name = 'VALUES'
         hdulist.append(hdu4)
-        
-        hdulist.writeto(filename,overwrite=overwrite)
+
+        hdulist.writeto(filename, overwrite=overwrite)
