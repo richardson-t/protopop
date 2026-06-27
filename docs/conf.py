@@ -6,10 +6,15 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import tomllib
+
+with open('../pyproject.toml', 'rb') as f:
+    toml = tomllib.load(f)
+
 project = 'protopop'
 copyright = '2026, Theo Richardson'
 author = 'Theo Richardson'
-release = '0.1.0.dev'
+release = toml['project']['version']
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
