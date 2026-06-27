@@ -11,7 +11,7 @@ Straightforward sampling of the evolutionary histories/expected fluxes of protoc
 Installation
 ------------
 
-To install ``protopop``:::
+To install ``protopop``: ::
 
   pip install protopop
 
@@ -24,7 +24,13 @@ To retrieve the data ``protopop`` uses to sample, run ``get-protopop-data`` from
 Usage
 -----
 
+``protopop``'s primary access point for users is through its ``Cluster`` class, which can be accessed with: ::
+
+  from protopop.cluster import Cluster
+
 To sample with ``protopop``...
+
+To make a new cluster...
 
 Details
 -------
@@ -32,8 +38,8 @@ Details
 .. toctree::
    :maxdepth: 2
 
-   api/api.rst
    configuration.rst
+   api/api.rst
    
 Indices and tables
 ------------------
