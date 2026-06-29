@@ -1,10 +1,12 @@
 Configuration
 =============
 
+This page provides an overview of the customizable aspects of ``protopop``'s protocluster models.
+
 Theory parameters
 -----------------
 
-Some parameters of ``protopop``'s protocluster models adjust the theoretical assumptions shaping cluster construction. These "theory parameters" place some limitations on the values they will accept; this page goes over the available configuration options for each when creating new protoclusters.
+Some parameters of ``protopop``'s models adjust the theoretical assumptions shaping cluster construction. These "theory parameters" place some limitations on the values they will accept; this section goes over the available configuration options for each when creating new protoclusters.
 
 IMF
 ^^^
@@ -44,16 +46,16 @@ Star formation history
 
 Part of cluster creation is selecting a star formation history (SFH), which determines when cluster members begin accreting relative to each other. SFHs are implemented as probability distributions from which times are drawn; these times set the beginning of formation :math:`t=0` and therefore the age of each cluster member. (Without the assumption of an SFH, each cluster member would begin forming at the same time.)
 
-Entering an SFH for a new cluster requires specifying a type (``'sfh'``) and timescale (``'timescale'``), where the timescale is the characteristic time for star formation :math:`t_{\\rm sf}` controlling the shape of the probability distribution. ``protopop`` provides the following options for SFH types:
+Entering an SFH for a new cluster requires specifying a type (``'sfh'``) and timescale (``'timescale'``), where the timescale is the characteristic time for star formation :math:`t_{\rm sf}` controlling the shape of the probability distribution. ``protopop`` provides the following options for SFH types:
 
-* ``'constant'``: Uniform distribution with a max time of :math:`t_{\\rm sf}`.
-* ``'normalstart'``: Normal distribution with a :math:`1 - \\sigma` width of :math:`t_{\\rm sf}`.
+* ``'constant'``: Uniform distribution with a max time of :math:`t_{\rm sf}`.
+* ``'normalstart'``: Normal distribution with a :math:`1 - \sigma` width of :math:`t_{\rm sf}`.
 * ``'normalend'``: Same as ``'normalstart'``, but all cluster members are first aligned such that all formation ends at the same time. (This matters in cases where the accretion time is mass-dependent, which is true for e.g. isothermal-sphere accretion.)
 
 Efficiency
 ^^^^^^^^^^
 
-Mass accretion efficiency (:math:`\\epsilon_{\\rm sf}`) determines how much mass is modeled as being transferred from a prestellar mass reservoir to an eventual star. This value is reflected in the predicted fluxes in the tracks ``protopop`` uses to model the flux evolution of cluster members and therefore has an impact on the resulting predictions. ``protopop`` permits efficiencies of 33 and 100, which are treated as percentage values (i.e. an efficiency of 33 means that 33% of initial mass will be accreted); this value is held constant for an entire cluster regardless of eventual stellar mass.
+Mass accretion efficiency :math:`(\epsilon_{\rm sf})` determines how much mass is modeled as being transferred from a prestellar mass reservoir to an eventual star. This value is reflected in the predicted fluxes in the tracks ``protopop`` uses to model the flux evolution of cluster members and therefore has an impact on the resulting predictions. ``protopop`` permits efficiencies of 33 and 100, which are treated as percentage values (i.e. an efficiency of 33 means that 33% of initial mass will be accreted); this value is held constant for an entire cluster regardless of eventual stellar mass.
 
 Other parameters
 ----------------
