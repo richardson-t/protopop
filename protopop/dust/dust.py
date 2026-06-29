@@ -136,7 +136,6 @@ def dust_sphere(m_star, M_cl, efficiency,
 
     mbe = _M_BE(M_cl, efficiency, T, R_cl, mu)
     r_max = _r_BE_max(M_cl, efficiency, T=T, R_cl=R_cl, mu=mu) * (m_star /
-                                                                  # size scales with M^1/3
                                                                   efficiency / mbe.value)**(1/3)
     ang_size = (r_max**2 / 4 / u.kpc**2).decompose().value * u.sr  # defined at 1 kpc
 

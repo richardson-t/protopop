@@ -25,9 +25,6 @@ class Cluster(object, metaclass=ABCMeta):
     mass: float
         Total mass in stars of the final stellar population,
         in Msun
-    history: str
-        Accretion history followed by the model YSOs making
-        up the protocluster
     imf: str, MassFunction
         Mass function from which the final stellar population
         is drawn
@@ -36,6 +33,9 @@ class Cluster(object, metaclass=ABCMeta):
     stop_criterion: str
         Which criterion to use to stop sampling (if sampling
         is done randomly)
+    history: str
+        Accretion history followed by the model YSOs making
+        up the protocluster
     sfh: str
         History of star formation followed by the cluster members
     timescale: :math:`{\\rm Myr}` or equivalent
@@ -67,10 +67,10 @@ class Cluster(object, metaclass=ABCMeta):
 
     def __init__(self,
                  mass=None,
-                 history=None,
                  imf='kroupa',
                  sampling='random',
                  stop_criterion='nearest',
+                 history=None,
                  sfh=None,
                  timescale=None,
                  efficiency=33,
@@ -85,11 +85,11 @@ class Cluster(object, metaclass=ABCMeta):
                 raise ValueError('Total cluster mass must be provided')
             self._mass = mass
 
-            history_check(history)
-            self._history = history
-
             imf_check(imf)
             self._imf = imf
+
+            history_check(history)
+            self._history = history
 
             if sfh is not None:
                 sfh_check(sfh)
@@ -120,10 +120,6 @@ class Cluster(object, metaclass=ABCMeta):
         return self._mass
 
     @property
-    def history(self):
-        return self._history
-
-    @property
     def imf(self):
         return self._imf
 
@@ -134,6 +130,10 @@ class Cluster(object, metaclass=ABCMeta):
     @property
     def stop(self):
         return self._stop
+
+    @property
+    def history(self):
+        return self._history
 
     @property
     def sfh(self):
@@ -321,8 +321,8 @@ class Cluster(object, metaclass=ABCMeta):
         output from the protostellar evolutionary track
         underlying a member; values are calculated through
         interpolation of tracks created with a modified
-        `Klassen+ (2012) <https://doi.org/10.1111/j.1365-2966.2012.20523.x>`_ 
-        code (see `Richardson+ 2025 <https://doi.org/10.3847/1538-4357/ade99d>`_).
+        `Klassen+ (2012) <https://doi.org/10.1111/j.1365-2966.2012.20523.x>`__ 
+        code (see `Richardson+ 2025 <https://doi.org/10.3847/1538-4357/ade99d>`__).
         """
         unit_check(time, 'time')
         time = time.to(u.Myr).value
@@ -349,7 +349,7 @@ class Cluster(object, metaclass=ABCMeta):
         an array of flux values (in mJy) corresponding to the
         flux predicted for each member at the requested time.
         Flux evolution is calculated following the procedure
-        laid out in `Richardson+ (2025) <https://doi.org/10.3847/1538-4357/ade99d>`_.
+        laid out in `Richardson+ (2025) <https://doi.org/10.3847/1538-4357/ade99d>`__.
 
         Parameters
         ----------
@@ -500,10 +500,10 @@ class Cluster(object, metaclass=ABCMeta):
 
         prop_table = read_table_hdf5(in_file, path='properties')
         cluster._mass = prop_table['mass'][0]
-        cluster._history = prop_table['history'][0]
         cluster._imf = prop_table['imf'][0]
         cluster._sampling = prop_table['sampling'][0]
         cluster._stop = prop_table['stop'][0]
+        cluster._history = prop_table['history'][0]
         cluster._sfh = prop_table['sfh'][0]
         cluster._timescale = prop_table['timescale'][0]
         cluster._efficiency = prop_table['efficiency'][0]
@@ -546,10 +546,10 @@ class Cluster(object, metaclass=ABCMeta):
 
         prop_table = QTable()
         prop_table.add_column([self.mass], name='mass')
-        prop_table.add_column([self.history], name='history')
         prop_table.add_column([self.imf], name='imf')
         prop_table.add_column([self.sampling], name='sampling')
         prop_table.add_column([self.stop], name='stop')
+        prop_table.add_column([self.history], name='history')
         prop_table.add_column([self.sfh], name='sfh')
         prop_table.add_column([self.timescale], name='timescale')
         prop_table.add_column([self.efficiency], name='efficiency')

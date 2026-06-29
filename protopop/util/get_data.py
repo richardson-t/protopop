@@ -9,7 +9,7 @@ record_id = None  # change when you make it
 def retrieve_tracks():
     """
     Retrieve the template track information from the 
-    `host Zenodo repository <{link}>`_. Includes protostellar 
+    `host Zenodo repository <{link}>`__. Includes protostellar 
     evolutionary tracks and corresponding flux evolutionary tracks.
     """
     if path.exists(f'{datapath}/../track_data'):
@@ -27,9 +27,9 @@ def retrieve_tracks():
 def retrieve_clusters():
     """
     Retrieve premade cluster models from the 
-    `host Zenodo repository <{link}>`_; 
+    `host Zenodo repository <{link}>`__; 
     includes all clusters made for 
-    `Richardson+ (in prep) <{link}>`_.
+    `Richardson+ (in prep) <{link}>`__.
     """
     if path.exists(f'cluster_data'):
         raise RuntimeError(
