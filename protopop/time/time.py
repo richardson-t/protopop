@@ -39,9 +39,9 @@ def make_offset(sfh, n_times, timescale):
     sfh_check(sfh)
     unit_check(timescale, 'time')
     if sfh == 'constant':
-        ret = make_random(n_times, timescale)
+        ret = _make_random(n_times, timescale)
     else:
-        ret = make_normal_random(n_times, timescale)
+        ret = _make_normal_random(n_times, timescale)
 
     ret -= min(ret)
     return ret
