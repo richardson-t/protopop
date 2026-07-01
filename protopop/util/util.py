@@ -93,7 +93,7 @@ def interp_props(x, base_x):
         return indices, fracs
 
 
-def filter_flux(sed, wav, instrument, camera, returnZero=True):
+def filter_flux(sed, wav, facility, filter_id, returnZero=True):
     """
     Convolve an SED with an instrumental response profile. Profiles
     are pulled from the Spanish Virtual Observatory's
@@ -106,12 +106,12 @@ def filter_flux(sed, wav, instrument, camera, returnZero=True):
         The SED to be convolved
     wav: :math:`{\\rm \\mu m}` or equivalent
         Wavelength(s) where the SED to be convolved is defined
-    instrument: str
-        The instrument with the filter, formatted as in the SVO FPS
-        (e.g. `JWST`)
-    camera: str
-        The actual filter to be convolved, formatted as in the SVO FPS
-        (e.g. `MIRI.F2550W`)
+    facility: str
+        The facility hosting the instrument/filter, formatted as in the 
+        SVO FPS (e.g. `JWST`)
+    filter_id: str
+        The actual filter to be convolved. Follows the {instrument}/{filter}
+        format of the SVO FPS (e.g. `MIRI.F2550W`)
 
     Other Parameters
     ----------------
@@ -129,7 +129,7 @@ def filter_flux(sed, wav, instrument, camera, returnZero=True):
     filter_wav = (filter_info['Wavelength']).to(u.um)
     filter_response = filter_info['Transmission']
     interp_flux = np.interp(filter_wav, wav, sed)
-    avresponse = (filter_response[:-1] + filter_response[1:])/2
+    avresponse = (filter_response[:-1] + filter_response[1:]) / 2
     vals = interp_flux * filter_response
     vals = (vals[:1] + vals[:-1]) / 2
     dlambda = filter_wav[1:] - filter_wav[:-1]
