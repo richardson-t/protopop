@@ -15,7 +15,7 @@ To install ``protopop``: ::
 
   pip install protopop
 
-To retrieve the data ``protopop`` uses to sample, run ``get-protopop-data`` from the command line within the environment where ``protopop`` is installed. Data consists of protostellar evolutionary tracks/corresponding flux tracks and a pre-made set of sample clusters. Tracks will download and unzip to a directory within ``protopop`` where the code expects to find the track information. Clusters will download and unzip to the directory the function is run from, as this is intended for direct access by users.
+To retrieve the data ``protopop`` uses to sample, run ``get-protopop-data`` from the command line within the environment where ``protopop`` is installed. Data consists of protostellar evolutionary tracks/corresponding flux tracks and a pre-made set of sample clusters. Tracks will download and unzip to a directory within ``protopop`` where the code expects to find the track information. Clusters will download and unzip to the current working directory, as this data is intended for direct access by users.
 
 .. note::
 
@@ -28,7 +28,7 @@ This section walks through a sample usage of ``protopop``. ``protopop``'s primar
 
   from protopop.cluster import Cluster
 
-``protopop`` provides an archive of pre-made clusters (see note in Installation) which can be easily read in and used. ::
+``protopop`` provides an archive of pre-made clusters (see Installation) which can be easily read in and used. ::
 
   cluster_modeldir = /home/richardson-t/cluster_data
   cl = Cluster.read(f'{cluster_modeldir}/sample_cluster.hdf5')
