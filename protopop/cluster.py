@@ -417,7 +417,7 @@ class Cluster(object, metaclass=ABCMeta):
                 ret = ret[:, 0]
             fluxes.append(ret)
 
-        return np.array(fluxes)
+        return np.array(fluxes) * u.mJy
 
     def sample_all(self, time, wav=None, freq=None, ap=1000*u.AU):
         """
@@ -489,7 +489,7 @@ class Cluster(object, metaclass=ABCMeta):
                 val = val[:, 0]
             fluxes.append(val)
 
-        return ev, np.array(fluxes)
+        return ev, np.array(fluxes) * u.mJy
 
     @classmethod
     def read(cls, filename):
