@@ -108,10 +108,10 @@ def filter_flux(sed, wav, facility, filter_id, returnZero=True):
         Wavelength(s) where the SED to be convolved is defined
     facility: str
         The facility hosting the instrument/filter, formatted as in the 
-        SVO FPS (e.g. `JWST`)
+        SVO FPS (e.g. ``'JWST'``)
     filter_id: str
         The actual filter to be convolved. Follows the {instrument}/{filter}
-        format of the SVO FPS (e.g. `MIRI.F2550W`)
+        format of the SVO FPS (e.g. ``'MIRI.F2550W'``)
 
     Other Parameters
     ----------------
@@ -125,7 +125,7 @@ def filter_flux(sed, wav, facility, filter_id, returnZero=True):
     zeropoint: :math:`{\\rm Jy}`, optional
         Zero point of the filter
     """
-    filter_info = SvoFps.get_transmission_data(f'{instrument}/{camera}')
+    filter_info = SvoFps.get_transmission_data(f'{facility}/{filter_id}')
     filter_wav = (filter_info['Wavelength']).to(u.um)
     filter_response = filter_info['Transmission']
     interp_flux = np.interp(filter_wav, wav, sed)
@@ -135,8 +135,8 @@ def filter_flux(sed, wav, facility, filter_id, returnZero=True):
     dlambda = filter_wav[1:] - filter_wav[:-1]
     flux = np.sum(vals * dlambda) / np.sum(avresponse * dlambda * u.um)
     if returnZero:
-        table = SvoFps.get_filter_list(instrument)
-        zeropoint = table['ZeroPoint'][table['filterID'] == f'{instrument}/{camera}'][0] * u.Jy
+        table = SvoFps.get_filter_list(facility)
+        zeropoint = table['ZeroPoint'][table['filterID'] == f'{facility}/{filter_id}'][0] * u.Jy
         return flux, zeropoint
     else:
         return flux
