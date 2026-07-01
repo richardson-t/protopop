@@ -136,7 +136,7 @@ def _samestep(m1, m2,
 def _sametime(m1, m2,
               ev_tracks, flux_tracks, last_times,
               distance, wav, aps,
-              M_cl, inits):
+              M_cl, efficiency, inits):
     ev1, ev2 = ev_tracks[m1].copy(), ev_tracks[m2].copy()
     fx1, fx2 = flux_tracks[m1].track.copy(), flux_tracks[m2].track.copy()
     t1, t2 = last_times[m1], last_times[m2]

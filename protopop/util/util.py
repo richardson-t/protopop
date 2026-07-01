@@ -17,7 +17,7 @@ datapath = path.dirname(__file__) + '/..'
 def setup_templates(history, efficiency):
     history_check(history)
 
-    ev_files = glob(f'{datapath}/data/protostar_tracks/{history}/*.txt')
+    ev_files = glob(f'{datapath}/track_data/protostar_tracks/{history}/*.txt')
     masses = np.array([float(f.split('=')[-1].split('.')[0] + '.' +
                       f.split('=')[-1].split('.')[1]) for f in ev_files])
     indices = np.argsort(masses)
@@ -25,11 +25,11 @@ def setup_templates(history, efficiency):
 
     ev_tracks = {masses[pair[0]]: Table.read(ev_files[pair[1]], format='ascii')
                  for pair in enumerate(indices)}
-    flux_tracks = {masses[i]: YSOModel.read(f'{datapath}/data/flux_tracks/{history}/mf={masses[i]}_eff={efficiency}.fits')
+    flux_tracks = {masses[i]: YSOModel.read(f'{datapath}/track_data/flux_tracks/{history}/mf={masses[i]}_eff={efficiency}.fits')
                    for i in range(len(masses))}
-    b_ev_tracks = {masses[i+1]: Table.read(f'{datapath}/data/protostar_tracks/{history}/binaries/mf={masses[i+1]}.txt', format='ascii')
+    b_ev_tracks = {masses[i+1]: Table.read(f'{datapath}/track_data/protostar_tracks/{history}/binaries/mf={masses[i+1]}.txt', format='ascii')
                    for i in range(len(masses[1:]))}
-    b_flux_tracks = {masses[i+1]: YSOModel.read(f'{datapath}/data/flux_tracks/{history}/binaries/mf={masses[i+1]}_eff={efficiency}.fits')
+    b_flux_tracks = {masses[i+1]: YSOModel.read(f'{datapath}/track_data/flux_tracks/{history}/binaries/mf={masses[i+1]}_eff={efficiency}.fits')
                      for i in range(len(masses[1:]))}
 
     # first timestep + temperature where the star stops accreting

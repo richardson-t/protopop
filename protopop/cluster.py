@@ -528,12 +528,6 @@ class Cluster(object, metaclass=ABCMeta):
                                         cluster.efficiency)
         mass_key = [*cluster._info[1][0].keys()][0]
         cluster._track_distance = cluster._info[1][1][mass_key].distance
-        cluster._be = dust_sphere(cluster.mass, cluster.efficiency,
-                                  cluster.wav, cluster.apertures,
-                                  cluster._track_distance,
-                                  T=cluster.res_props[0],
-                                  R_cl=cluster.res_props[1],
-                                  mu=cluster.res_props[2])
         del mass_key
 
         return cluster

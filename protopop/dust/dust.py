@@ -28,7 +28,7 @@ def _c_s(T, mu):
 
 
 def _M_BE(M_cl, efficiency, T, R_cl, mu):
-    spd = c_s(T, mu)
+    spd = _c_s(T, mu)
     mbe = 1.18 * spd**4 / np.sqrt(constants.G**3 *
                                   _P_internal(M_cl, efficiency, T, R_cl, mu))
     return mbe.to(u.M_sun)
