@@ -326,6 +326,7 @@ class Cluster(object, metaclass=ABCMeta):
         """
         unit_check(time, 'time')
         time = time.to(u.Myr).value
+        print(time)
 
         ret = Table()
         for i, m in tqdm(enumerate(self.member_masses),

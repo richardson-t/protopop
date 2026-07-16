@@ -295,7 +295,7 @@ def interp_tracks(mf,
     interp_ev = {key: (1. - frac) * ev1[key] + frac * ev2[key] for key in ev1.keys()}
     interp_ev = Table(interp_ev)
     first_time = np.argmin(abs(interp_ev['Time'] - np.min(interp_fx['Time'])))
-    last_time = np.argmin(abs(interp_ev['Time'] - np.min(interp_fx['Time'])))
+    last_time = np.argmin(abs(interp_ev['Time'] - np.max(interp_fx['Time'])))
     interp_ev = interp_ev[first_time:last_time+1]
 
     if np.logical_and(return_ev, return_flux):
