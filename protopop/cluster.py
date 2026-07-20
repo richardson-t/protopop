@@ -95,9 +95,10 @@ class Cluster(object, metaclass=ABCMeta):
                 sfh_check(sfh)
                 self._sfh = sfh
                 if timescale is None:
-                    self._timescale = 0.1 * u.Myr
+                    self._timescale = 1 * u.Myr
                 else:
                     unit_check(timescale, 'time')
+                    self._timescale = timescale
             else:
                 self._sfh = 'start'
                 self._timescale = np.nan
@@ -310,7 +311,7 @@ class Cluster(object, metaclass=ABCMeta):
             if 'end' in self.sfh:
                 self.align_end()
             if self.sfh not in ['start', 'end']:
-                offset_times = make_offset(self.n_members, self.sfh, self.timescale)
+                offset_times = make_offset(self.sfh, self.n_members, self.timescale)
                 self.add_time(offset_times)
 
     def sample_ev(self, time):
