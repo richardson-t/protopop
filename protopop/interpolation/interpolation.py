@@ -32,6 +32,7 @@ def _samestep(m1, m2,
               ev_tracks, flux_tracks, last_times,
               distance, wav, aps,
               M_cl, efficiency, inits,
+              GDR, dust_file, location,
               nsteps=1000):
     ev1, ev2 = ev_tracks[m1].copy(), ev_tracks[m2].copy()
     ev1, ev2 = ev1[:nsteps], ev2[:nsteps]  # not sure why this is necessary, but...
@@ -50,7 +51,8 @@ def _samestep(m1, m2,
     # if table 1 starts first, add rows to table 2
     if np.argmax(fx2_steps) > first_step:
         dust_sph = dust_sphere(m2, M_cl, efficiency, wav, aps,
-                               T=inits[0], R_cl=inits[1], mu=inits[2])
+                               T=inits[0], R_cl=inits[1], mu=inits[2],
+                               GDR=GDR, dust_file=dust_file, location=location)
 
         nsteps = np.argmax(fx2_steps) - first_step
         add_t = fx2['Time'][0]
@@ -68,7 +70,8 @@ def _samestep(m1, m2,
     # if table 2 starts first, add rows to table 1
     elif np.argmax(fx1_steps) > first_step:
         dust_sph = dust_sphere(m1, M_cl, efficiency, wav, aps,
-                               T=inits[0], R_cl=inits[1], mu=inits[2])
+                               T=inits[0], R_cl=inits[1], mu=inits[2],
+                               GDR=GDR, dust_file=dust_file, location=location)
 
         nsteps = np.argmax(fx1_steps) - first_step
         add_t = fx1['Time'][0]
@@ -132,7 +135,8 @@ def _samestep(m1, m2,
 def _sametime(m1, m2,
               ev_tracks, flux_tracks, last_times,
               distance, wav, aps,
-              M_cl, efficiency, inits):
+              M_cl, efficiency, inits,
+              GDR, dust_file, location):
     ev1, ev2 = ev_tracks[m1], ev_tracks[m2]
     fx1, fx2 = flux_tracks[m1].track.copy(), flux_tracks[m2].track.copy()
     t1, t2 = last_times[m1], last_times[m2]
@@ -143,7 +147,8 @@ def _sametime(m1, m2,
     # if table 1 starts first, add rows to table 2
     if np.argmin(overlap_12) < np.argmax(overlap_12):
         dust_sph = dust_sphere(m2, M_cl, efficiency, wav, aps,
-                               T=inits[0], R_cl=inits[1], mu=inits[2])
+                               T=inits[0], R_cl=inits[1], mu=inits[2],
+                               GDR=GDR, dust_file=dust_file, location=location)
 
         new_times = fx1['Time'][:np.argmax(overlap_12)][::-1]
 
@@ -163,7 +168,8 @@ def _sametime(m1, m2,
     # else if table 2 starts first, add rows to table 1
     elif np.argmin(overlap_21) < np.argmax(overlap_21):
         dust_sph = dust_sphere(m1, M_cl, efficiency, wav, aps,
-                               T=inits[0], R_cl=inits[1], mu=inits[2])
+                               T=inits[0], R_cl=inits[1], mu=inits[2],
+                               GDR=GDR, dust_file=dust_file, location=location)
 
         new_times = fx2['Time'][:np.argmax(overlap_21)][::-1]
 
@@ -224,7 +230,8 @@ def _sametime(m1, m2,
 def standardize(history, m1, m2,
                 ev_tracks, flux_tracks, last_times,
                 distance, wav, aps,
-                M_cl, efficiency, inits):
+                M_cl, efficiency, inits,
+                GDR, dust_file, location):
     samestep_hists = ['is', 'taper_is', 'taper_tc']
     sametime_hists = ['tc', 'ca', 'taper_ca', 'exp']
 
@@ -232,12 +239,14 @@ def standardize(history, m1, m2,
         ev1, ev2, fx1, fx2 = _samestep(m1, m2,
                                        ev_tracks, flux_tracks, last_times,
                                        distance, wav, aps,
-                                       M_cl, efficiency, inits)
+                                       M_cl, efficiency, inits,
+                                       GDR, dust_file, location)
     elif history in sametime_hists:
         ev1, ev2, fx1, fx2 = _sametime(m1, m2,
                                        ev_tracks, flux_tracks, last_times,
                                        distance, wav, aps,
-                                       M_cl, efficiency, inits)
+                                       M_cl, efficiency, inits,
+                                       GDR, dust_file, location)
 
     # ensure the tables are in chronological order for proper interpolation
     fx1 = fx1[np.argsort(fx1['Time'])]
@@ -254,6 +263,7 @@ def interp_tracks(mf,
                   last_temps, last_times, history,
                   distance, wav, aps,
                   M_cl, efficiency, inits,
+                  GDR=100, dust_file=None, location=None,
                   return_ev=False, return_flux=False):
     # Retrieve the relevant tables (with modifications for interpolation)
     i = np.searchsorted(masses, mf)
@@ -263,7 +273,8 @@ def interp_tracks(mf,
     ev1, ev2, fx1, fx2 = standardize(history, m1, m2,
                                      ev_tracks, flux_tracks, last_times,
                                      distance, wav, aps,
-                                     M_cl, efficiency, inits)
+                                     M_cl, efficiency, inits,
+                                     GDR, dust_file, location)
 
     frac = (mf - m1) / (m2 - m1)
     interp_fx = {key: (1. - frac) * fx1[key] + frac * fx2[key] for key in fx1.keys()}
@@ -276,7 +287,8 @@ def interp_tracks(mf,
     interp_fx = interp_fx[interp_fx['Time'] < tf]
 
     dust_sph = dust_sphere(mf, M_cl, efficiency, wav, aps,
-                           T=inits[0], R_cl=inits[1], mu=inits[2])
+                           T=inits[0], R_cl=inits[1], mu=inits[2],
+                           GDR=GDR, dust_file=dust_file, location=location)
 
     row_to_add = [2 * interp_fx['Time'][0] - interp_fx['Time'][1], dust_sph]
     interp_fx.add_row(row_to_add)

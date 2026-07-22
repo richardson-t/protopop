@@ -88,7 +88,7 @@ def _avg_surf_dens(r, m_star, M_cl, efficiency, T, R_cl, mu):
 # Dust opacities from a provided dust file
 
 
-def _get_kappa(wav, dust_file='d03_5.5_3.0_A_sub.hdf5', location=f'{datapath}', GDR=100):
+def _get_kappa(wav, GDR=None, dust_file=None, location=None):
     fn = f'{location}/{dust_file}'
     d03 = h5py.File(fn, 'r+')
     k_d03 = d03['optical_properties']['chi'] * (
@@ -101,7 +101,10 @@ def _get_kappa(wav, dust_file='d03_5.5_3.0_A_sub.hdf5', location=f'{datapath}', 
 
 def dust_sphere(m_star, M_cl, efficiency,
                 wav, aps,
-                T=10*u.K, R_cl=1*u.pc, mu=2.4*u.Da):
+                T=10*u.K, R_cl=1*u.pc, mu=2.4*u.Da,
+                GDR=100,
+                dust_file='d03_5.5_3.0_A_sub.hdf5',
+                location=f'{datapath}'):
     """
     Predict the flux density (in mJy) exhibited by a Bonnor-Ebert-like 
     sphere of dust, assumed to eventually collapse to a star within
@@ -129,10 +132,17 @@ def dust_sphere(m_star, M_cl, efficiency,
     mu: :math:`{\\rm Da}` or equivalent
         Mean molecular mass of material in the cluster
         (default = 2.4 Da)
+    GDR: float
+        Ratio of gas mass to dust mass (default = 100)
+    dust_file: str
+        Name of the dust file containing the opacities
+    location: str
+        Location of the dust file containing the opacities
     """
     M_cl = u.Quantity(M_cl, u.M_sun)
     bb = BlackBody(T)
-    kappa = _get_kappa(wav) * u.cm**2 / u.g
+    kappa = _get_kappa(wav, GDR=GDR,
+                       dust_file=dust_file, location=location) * u.cm**2 / u.g
 
     mbe = _M_BE(M_cl, efficiency, T, R_cl, mu)
     r_max = _r_BE_max(M_cl, efficiency, T=T, R_cl=R_cl, mu=mu) * (m_star /

@@ -78,6 +78,8 @@ class Cluster(object, metaclass=ABCMeta):
                  T_res=10*u.K,
                  R_res=1*u.pc,
                  mu=2.4*u.Da,
+                 dust_file=None,
+                 location=None,
                  read_only=False
                  ):
         if not read_only:
@@ -113,6 +115,9 @@ class Cluster(object, metaclass=ABCMeta):
             unit_check(R_res, 'length')
             unit_check(mu, 'mass')
             self._res_props = [T_res, R_res, mu]
+
+            self._dust_file = dust_file
+            self._location = location
 
             self._construct()
 
@@ -337,6 +342,7 @@ class Cluster(object, metaclass=ABCMeta):
                                  self._info[0], *self._info[track_index], *self._info[-2:],
                                  self._track_distance, self.wav, self.apertures,
                                  self.mass, self.efficiency, self.res_props,
+                                 100, self._dust_file, self._location,
                                  return_ev=True)
             evol['Time'] += self.offsets[i].value
             time_index = np.argmin(abs(time - evol['Time']))
@@ -396,6 +402,7 @@ class Cluster(object, metaclass=ABCMeta):
                                  self._info[0], *self._info[track_index], *self._info[-2:],
                                  self._track_distance, self.wav, self.apertures,
                                  self.mass, self.efficiency, self.res_props,
+                                 100, self._dust_file, self._location,
                                  return_flux=True)
             flux['Time'] += self.offsets[i].value
             row = flux[np.argmin(abs(time - flux['Time']))]
@@ -462,6 +469,7 @@ class Cluster(object, metaclass=ABCMeta):
                                            self._info[-2:],
                                            self._track_distance, self.wav, self.apertures,
                                            self.mass, self.efficiency, self.res_props,
+                                           100, self._dust_file, self._location,
                                            return_ev=True, return_flux=True)
 
             m_evol['Time'] += self.offsets[i].value
