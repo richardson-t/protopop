@@ -103,7 +103,7 @@ def filter_flux(sed, wav, facility, filter_id, returnZero=True):
     Parameters
     ----------
     sed: array
-        The SED to be convolved
+        The SED to be convolved. The last axis must correspond to the wavelengths where the SED is defined
     wav: :math:`{\\rm \\mu m}` or equivalent
         Wavelength(s) where the SED to be convolved is defined
     facility: str
@@ -127,13 +127,27 @@ def filter_flux(sed, wav, facility, filter_id, returnZero=True):
     """
     filter_info = SvoFps.get_transmission_data(f'{facility}/{filter_id}')
     filter_wav = (filter_info['Wavelength']).to(u.um)
-    filter_response = filter_info['Transmission']
-    interp_flux = np.interp(filter_wav, wav, sed)
+    filter_response = filter_info['Transmission'].value
     avresponse = (filter_response[:-1] + filter_response[1:]) / 2
+
+    sed = np.atleast_2d(sed.value)
+    shp = sed.shape
+    ll = len(shp)
+    if ll > 2:
+        sed = np.ravel(sed).reshape(np.prod(shp[:-1]), shp[-1])
+    interp_flux = []
+    for arr in sed:
+        interp_flux.append(np.interp(filter_wav, wav, arr))
+    interp_flux = np.array(interp_flux) * u.mJy
+
     vals = interp_flux * filter_response
-    vals = (vals[:1] + vals[:-1]) / 2
+    vals = (vals[:, :1] + vals[:, :-1]) / 2
     dlambda = filter_wav[1:] - filter_wav[:-1]
-    flux = np.sum(vals * dlambda) / np.sum(avresponse * dlambda * u.um)
+    flux = np.sum(vals * dlambda, axis=-1) / np.sum(avresponse * dlambda * u.um)
+    flux = np.ravel(flux).reshape(shp[:-1])
+    if flux.shape[0] == 1:
+        flux = flux[0]
+
     if returnZero:
         table = SvoFps.get_filter_list(facility)
         zeropoint = table['ZeroPoint'][table['filterID'] == f'{facility}/{filter_id}'][0] * u.Jy
