@@ -3,13 +3,14 @@ from subprocess import run
 from shutil import move, unpack_archive
 
 datapath = path.dirname(__file__)
-record_id = None  # change when you make it
+record_id = 20725652  # change when you make it
+repo_link = 'https://doi.org/10.5281/zenodo.20725651'
 
 
 def retrieve_tracks():
-    """
+    f"""
     Retrieve the template track information from the 
-    `host Zenodo repository <{link}>`__. Includes protostellar 
+    `host Zenodo repository <{repo_link}>`__. Includes protostellar 
     evolutionary tracks and corresponding flux evolutionary tracks.
     """
     if path.exists(f'{datapath}/../track_data'):
@@ -25,11 +26,11 @@ def retrieve_tracks():
 
 
 def retrieve_clusters():
-    """
+    f"""
     Retrieve premade cluster models from the 
-    `host Zenodo repository <{link}>`__; 
+    `host Zenodo repository <{repo_link}>`__; 
     includes all clusters made for 
-    `Richardson+ (in prep) <{link}>`__.
+    `Richardson+ (in prep) <(link)>`__.
     """
     if path.exists(f'cluster_data'):
         raise RuntimeError(

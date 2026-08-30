@@ -53,7 +53,6 @@ def _samestep(m1, m2,
                                T=inits[0], R_cl=inits[1], mu=inits[2])
 
         nsteps = np.argmax(fx2_steps) - first_step
-        # fx2.reverse()
         add_t = fx2['Time'][0]
 
         row_list = dict()
@@ -64,7 +63,6 @@ def _samestep(m1, m2,
                            [val for val in row_list.values()]],
                           names=[*fx2.keys()])
         fx2 = vstack([fx2, add_table])
-        # fx2.reverse()
         del row_list, add_table
 
     # if table 2 starts first, add rows to table 1
@@ -73,7 +71,6 @@ def _samestep(m1, m2,
                                T=inits[0], R_cl=inits[1], mu=inits[2])
 
         nsteps = np.argmax(fx1_steps) - first_step
-        # fx1.reverse()
         add_t = fx1['Time'][0]
 
         row_list = dict()
@@ -85,7 +82,6 @@ def _samestep(m1, m2,
                            [val for val in row_list.values()]],
                           names=[*fx1.keys()])
         fx1 = vstack([fx1, add_table])
-        # fx1.reverse()
         del row_list, add_table
 
     # if table 1 ends last, add rows to table 2
@@ -137,7 +133,7 @@ def _sametime(m1, m2,
               ev_tracks, flux_tracks, last_times,
               distance, wav, aps,
               M_cl, efficiency, inits):
-    ev1, ev2 = ev_tracks[m1].copy(), ev_tracks[m2].copy()
+    ev1, ev2 = ev_tracks[m1], ev_tracks[m2]
     fx1, fx2 = flux_tracks[m1].track.copy(), flux_tracks[m2].track.copy()
     t1, t2 = last_times[m1], last_times[m2]
 
@@ -150,7 +146,6 @@ def _sametime(m1, m2,
                                T=inits[0], R_cl=inits[1], mu=inits[2])
 
         new_times = fx1['Time'][:np.argmax(overlap_12)][::-1]
-        fx2.reverse()
 
         row_list = dict()
         for time in range(len(new_times)):
@@ -160,7 +155,6 @@ def _sametime(m1, m2,
                            [val for val in row_list.values()]],
                           names=[*fx2.keys()])
         fx2 = vstack([fx2, add_table])
-        fx2.reverse()
         del row_list, add_table
 
         # update overlap
@@ -172,7 +166,6 @@ def _sametime(m1, m2,
                                T=inits[0], R_cl=inits[1], mu=inits[2])
 
         new_times = fx2['Time'][:np.argmax(overlap_21)][::-1]
-        fx1.reverse()
 
         row_list = dict()
         for time in range(len(new_times)):
@@ -182,7 +175,6 @@ def _sametime(m1, m2,
                            [val for val in row_list.values()]],
                           names=[*fx1.keys()])
         fx1 = vstack([fx1, add_table])
-        fx1.reverse()
         del row_list, add_table
 
         # update overlap
@@ -247,6 +239,10 @@ def standardize(history, m1, m2,
                                        distance, wav, aps,
                                        M_cl, efficiency, inits)
 
+    # ensure the tables are in chronological order for proper interpolation
+    fx1 = fx1[np.argsort(fx1['Time'])]
+    fx2 = fx2[np.argsort(fx2['Time'])]
+
     return ev1, ev2, fx1, fx2
 
 # construct evolutionary/flux track for a protostar
@@ -283,9 +279,7 @@ def interp_tracks(mf,
                            T=inits[0], R_cl=inits[1], mu=inits[2])
 
     row_to_add = [2 * interp_fx['Time'][0] - interp_fx['Time'][1], dust_sph]
-    # interp_fx.reverse()
     interp_fx.add_row(row_to_add)
-    # interp_fx.reverse()
 
     sed = make_bb(tempf * u.K, rf,
                   distance, wav, aps)

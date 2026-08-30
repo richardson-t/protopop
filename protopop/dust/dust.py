@@ -61,7 +61,7 @@ def _density_profile(rr, rho_c, r_0, const=2.24, alpha=2.33):
 
 
 def _avg_surf_dens(r, m_star, M_cl, efficiency, T, R_cl, mu):
-    sz = 100
+    sz = 41
     zz, yy, xx = np.indices([sz, sz, sz])
     mbe = _M_BE(M_cl, efficiency, T, R_cl, mu)
     rho_c_be, r_0 = _BE_props(M_cl, efficiency, T, R_cl, mu)
@@ -76,8 +76,8 @@ def _avg_surf_dens(r, m_star, M_cl, efficiency, T, R_cl, mu):
                         x0=rho_c_be.value, args=(r_max)
                         ).root * u.g / u.cm**3
 
-    rr_3d = r_max * ((zz - sz / 2.)**2 + (yy - sz / 2.)**2 + (xx - sz / 2.)**2)**0.5 / (sz / 2.)
-    rr_2d = r_max * ((yy - sz / 2.)**2 + (xx - sz / 2.)**2)**0.5 / (sz / 2.)
+    rr_3d = r_max * ((zz - sz // 2)**2 + (yy - sz // 2)**2 + (xx - sz // 2)**2)**0.5 / (sz // 2)
+    rr_2d = r_max * ((yy - sz // 2)**2 + (xx - sz // 2)**2)**0.5 / (sz // 2)
 
     dens_3d = _density_profile(rr_3d, rho_c, r_0)
     dz = 2 * r_max / sz
