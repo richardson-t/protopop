@@ -1,15 +1,18 @@
----
-title: 'protopop: Creating and sampling protostellar populations'
+title: 'protopop: Stellar protocluster synthesis in Python'
 tags:
   - Python
+  - astronomy
+  - star formation
+  - protoclusters
 authors:
   - name: Theo Richardson
     orcid: 0009-0001-8880-6951
+    corresponding: true
     affiliation: 1
 affiliations:
-  - name: University of Florida, United States
-    index: 1
-date: 6 July 2026
+ - name: University of Florida, United States
+   index: 1
+date: {Day} {Month} 2026
 bibliography: paper.bib
 
 # Summary
