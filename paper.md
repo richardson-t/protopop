@@ -18,18 +18,28 @@ text
 
 # Statement of need
 
-text
+-Self-consistent stellar populations are a standard entry in the toolkit for research on stars and galaxies because they present a physically motivated point of comparison
+-Modern surveys of Galactic/extragalactic star formation (HiGAL, ALMA-IMF, ALMAGAL) provide enough data to merit the same kind of population-level analysis
+-However, no tools exist which create self-consistent models or allow the same level of theoretical flexibility as typical SPS
 
 # State of the field
 
--Self-consistent stellar populations are a standard entry in the toolkit for research on stars and galaxies because they present a physically motivated point of comparison
--Modern surveys of Galactic/extragalactic star formation provide enough data to merit the same kind of population-level analysis
--However, no tools exist which create self-consistent models or allow the same level of theoretical flexibility as typical SPS
-    -The most comprehensive option in existence is either SPS tools, which don't usually focus on treating PMS evolution, or @Molinari:2019, which is not software and is therefore not flexible in the underlying theory (and doesn't allow for individual-member-level studies)
+-SPS: typically doesn't extend into pre-/protostellar phases
+-Similar PMS cluster modeling approaches:
+    -Analytic and semianalytic models (Myers/Zhou) typically focus on summary properties, don't do radiative transfer, build in particular theories
+    -Sergio Molinari's cluster models (no self-consistent histories or persistent members, theory not customizable)
+  -broader point: no existing approaches really allow for wider generation of new models or much customization, because they're not implemented as open access software
 
 # Software design
 
-text
+%why OOP?
+Research applications of population synthesis tools (find some galaxy-scale/IMF stuff?) necessitate the ability to compare synthesized populations to data. They also typically benefit from considering multiple physical scenarios, as expanding the theory space that can be translated into predictions allows a fuller understanding of which theories are consistent or inconsistent with observational results. Consequently, an expected workflow for a project making use of this package includes the creation of multiple populations, which requires performing the same operations across a potentially very wide theory space. protopop supports such a workflow through an object-oriented design, where each population is contained in a saveable "Cluster" object with a suite of tunable theoretical attributes and class methods allowing access to the physical properties and radiation emitted by individual population members at any given time. This design is intended to make the core functions of generating and sampling protocluster models easy to understand and execute while allowing generated models to persist and preserve their information.
+
+%why interpolation?
+-tracking member evolution is important to be able to match the full scope of available observations
+  -each member has an evolutionary history in physical properties and flux (a lot of information given that SEDs are defined at 200 wavelengths)
+-clusters can reach thousands+ of members
+-protopop interpolates to avoid associating a set track with each member, which would be very memory intensive given the size of template files (check how much an evolutionary track + a flux track would be per member)
 
 # Research impact statement
 
@@ -37,10 +47,10 @@ text. (cite/allude to research using this tool; should include your work, possib
 
 # AI usage disclosure
 
-No generative AI tools were utilized in the process of creating package software and documentation or in the process of paper authoring.
+No generative AI tools were utilized in the process of creating and documenting this software package or in the process of paper authoring.
 
 # Acknowledgements
 
-text
+This work was supported by NSF grants AST 2008101 and CAREER 2142300 (PI: Adam Ginsburg). I acknowledge [UFIT Research Computing](https://it.ufl.edu/rc) for providing computation resources and support that have contributed to the research results reported in this publication.
 
 # References
