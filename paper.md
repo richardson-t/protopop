@@ -1,3 +1,4 @@
+---
 title: 'protopop: Stellar protocluster synthesis in Python'
 tags:
   - Python
@@ -14,6 +15,7 @@ affiliations:
    index: 1
 date: 24 October 2026
 bibliography: paper.bib
+---
 
 # Summary
 
@@ -47,8 +49,6 @@ Research applications of population synthesis tools (find some galaxy-scale/IMF 
 # Research impact statement
 
 text. (cite/allude to research using this tool; should include your work, possibly Taehwa's work, seshat 2.0, etc.)
-
-test citation: @Pearson:2017
 
 # AI usage disclosure
 
