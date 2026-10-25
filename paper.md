@@ -54,6 +54,6 @@ No generative AI tools were utilized in the process of creating and documenting 
 
 # Acknowledgements
 
-This work was supported by NSF grants AST 2008101 and CAREER 2142300 (PI: Adam Ginsburg). I acknowledge [UFIT Research Computing](https://it.ufl.edu/rc) for providing computation resources and support that have contributed to the research results reported in this publication.
+This work was supported by NSF grants AST 2008101 and CAREER 2142300 (PI: Adam Ginsburg). I acknowledge [UFIT Research Computing](https://it.ufl.edu/rc) for providing computation resources and support that have contributed to the research results reported in this publication. This package makes use of the following software: astropy [@astropy2013, @astropy2018, @astropy2022], astroquery [@astroquery], [h5py](https://www.h5py.org/), imf [@imf], numpy [@numpy], scipy [@scipy].
 
 # References
