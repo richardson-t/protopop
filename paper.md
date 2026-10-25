@@ -12,7 +12,7 @@ authors:
 affiliations:
  - name: University of Florida, United States
    index: 1
-date: {Day} {Month} 2026
+date: 24 October 2026
 bibliography: paper.bib
 
 # Summary
@@ -48,12 +48,14 @@ Research applications of population synthesis tools (find some galaxy-scale/IMF 
 
 text. (cite/allude to research using this tool; should include your work, possibly Taehwa's work, seshat 2.0, etc.)
 
+test citation: @Pearson:2017
+
 # AI usage disclosure
 
 No generative AI tools were utilized in the process of creating and documenting this software package or in the process of paper authoring.
 
 # Acknowledgements
 
-This work was supported by NSF grants AST 2008101 and CAREER 2142300 (PI: Adam Ginsburg). I acknowledge [UFIT Research Computing](https://it.ufl.edu/rc) for providing computation resources and support that have contributed to the research results reported in this publication. This package makes use of the following software: astropy [@astropy2013, @astropy2018, @astropy2022], astroquery [@astroquery], [h5py](https://www.h5py.org/), imf [@imf], numpy [@numpy], scipy [@scipy].
+This work was supported by NSF grants AST 2008101 and CAREER 2142300 (PI: Adam Ginsburg). I acknowledge [UFIT Research Computing](https://it.ufl.edu/rc) for providing computation resources and support that have contributed to the research results reported in this publication. This package makes use of the following software: astropy [@astropy2013; @astropy2018; @astropy2022], astroquery [@astroquery], [h5py](https://www.h5py.org/), imf [@imf], numpy [@numpy], scipy [@scipy].
 
 # References
